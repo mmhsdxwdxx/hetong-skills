@@ -173,3 +173,9 @@ Pi 在新会话中使用 `/skill:hetong-craft`；Codex、DSH 通过各自技能�
 - Windows 安装器 `scripts/install.ps1` 冒烟安装通过；
 - Ubuntu Python 3.9/3.12 回归通过；
 - **尚未**在两台真实 Win11 + Word/WPS 客户端上完成安装、Office 渲染和实机兼容性验收；CI 不能替代该验收。
+## WorkBuddy 包验证
+
+- `scripts/build_workbuddy.py` 生成 `hetong.skill`、三套单技能包和 `hetong-workbuddy.zip`；
+- 用 WorkBuddy 自带 `quick_validate.py` 校验四类包，均通过；
+- 三套技能同级解压后，`word_reader.py`、`review_kit.py`、`hidden_change.py` 入口均可运行；
+- 尚未在真实 WorkBuddy 客户端完成上传、技能自动触发和 Word/WPS 文档处理验收。

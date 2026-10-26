@@ -22,7 +22,7 @@ B01—B11 与甲方视角 A01—A04 分列；A01—A04 覆盖保函受益人/生
 
 如果同事使用 WorkBuddy，不需要安装 Pi/Codex 技能：使用 WorkBuddy 原生安装包。
 
-- **单包上传**：下载 `hetong.skill`，在 WorkBuddy「技能 → 添加技能 → 上传技能」上传一次；
+- **单包上传**：下载 [hetong.skill](https://github.com/mmhsdxwdxx/hetong-skills/releases/download/v1.3.0-dev.1/hetong.skill)，在 WorkBuddy「技能 → 添加技能 → 上传技能」上传一次；
 - **命令行**：下载并解压到 `~/.workbuddy/skills`；
 - **Windows**：解压到 `%USERPROFILE%\.workbuddy\skills`，重启 WorkBuddy；
 - 三套技能的分开安装包仍保留，详见 [WorkBuddy 安装包](workbuddy/README.md)。

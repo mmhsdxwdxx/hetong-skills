@@ -15,6 +15,14 @@
 
 `hetong.skill` 把三套技能放在 `hetong/bundled/` 内，单次上传即可；三套单技能包必须安装为**同级目录**，因为 `hetong-review` 和 `hetong-server` 会引用 `../hetong-craft/scripts/`。
 
+## 下载
+
+开发预览版：
+
+https://github.com/mmhsdxwdxx/hetong-skills/releases/tag/v1.3.0-dev.1
+
+下载 `hetong.skill` 即可。正式版仍为 `v1.2.0`；WorkBuddy 预览包属于开发版，不替换正式版。
+
 ## 方式一：WorkBuddy 图形界面（推荐）
 
 1. 打开 WorkBuddy → 左侧「专家·技能·连接器」→「技能」；
@@ -53,6 +61,7 @@ tar -xf .\hetong.skill -C "$HOME\.workbuddy\skills"
 
 Windows 没有 `tar` 时，先把 `.skill` 复制成 `.zip`，再 `Expand-Archive`。
 
+安装只新增 `hetong`（或三套同名技能）目录，不迁移、不删除你原有的 WorkBuddy 技能和资产。
 如果本机已有旧版 `hetong-server`，先改名备份，否则会覆盖：
 
 ```bash
