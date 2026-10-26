@@ -31,3 +31,4 @@ if ($LASTEXITCODE -ge 8) {
 Write-Host "Installed skills to: $Destination"
 Write-Host "Start Pi/Codex/DSH from the target project root and reload skills."
 Write-Host "This installer overwrites same-named files but does not delete extra files."
+exit 0
