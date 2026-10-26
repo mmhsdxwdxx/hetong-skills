@@ -18,6 +18,18 @@ B01—B11 与甲方视角 A01—A04 分列；A01—A04 覆盖保函受益人/生
 有效期与提取、资金共管账户及 U 盾权限。`hetong-server/scripts/hidden_change.py` 可对
 前后两版近似 DOCX 检查绕过修订记录的直接改文，并区分留痕改动、历史减少和非文本变化。
 
+## WorkBuddy
+
+如果同事使用 WorkBuddy，不需要安装 Pi/Codex 技能：使用 WorkBuddy 原生安装包。
+
+- **单包上传**：下载 `hetong.skill`，在 WorkBuddy「技能 → 添加技能 → 上传技能」上传一次；
+- **命令行**：下载并解压到 `~/.workbuddy/skills`；
+- **Windows**：解压到 `%USERPROFILE%\.workbuddy\skills`，重启 WorkBuddy；
+- 三套技能的分开安装包仍保留，详见 [WorkBuddy 安装包](workbuddy/README.md)。
+
+`hetong.skill` 内含 `hetong-craft`、`hetong-review`、`hetong-server` 三套技能；
+审核默认只读，修改仍需在对话中明确授权。
+
 ## 安装
 
 把包复制到目标项目的 `.agents/skills/`：

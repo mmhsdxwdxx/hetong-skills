@@ -1,6 +1,10 @@
 # Changelog
 
-## 1.3.0-dev
+## 1.3.0-dev.1
+
+- 增加 WorkBuddy 原生安装包：`hetong.skill` 单包上传、三套单技能包与合并 zip；安装脚本不修改 WorkBuddy 原有资产。
+- 增加 WorkBuddy 验证：官方 `quick_validate.py` 通过，三套技能同级安装后脚本入口可用。
+
 
 - 增加 Windows 11 原生适配：`install.ps1` / `install.cmd`、`Scripts\python.exe` 虚拟环境路径、LibreOffice Windows 路径、`msvcrt` 文件锁和系统字体支持。
 - 增加 Windows CI 与平台路径回归；macOS Office 渲染回归保持通过。
