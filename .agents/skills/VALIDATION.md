@@ -167,3 +167,9 @@ python3 .agents/skills/hetong-craft/scripts/office_kit.py doctor --full
 ```
 
 Pi 在新会话中使用 `/skill:hetong-craft`；Codex、DSH 通过各自技能选择方式或自然语言指定技能名。目录、frontmatter 或路由变化后，应重新执行三个宿主的加载探针，不能只以文件存在作为通过依据。
+## Windows 11 适配验证
+
+- GitHub Actions `windows-latest`（Python 3.12）运行合同文本、Word 深读、审阅审计、平台路径、暗改检测和审核工具回归，全部通过；
+- Windows 安装器 `scripts/install.ps1` 冒烟安装通过；
+- Ubuntu Python 3.9/3.12 回归通过；
+- **尚未**在两台真实 Win11 + Word/WPS 客户端上完成安装、Office 渲染和实机兼容性验收；CI 不能替代该验收。
