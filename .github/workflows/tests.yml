@@ -21,4 +21,32 @@ jobs:
           python .agents/skills/hetong-craft/scripts/test_hetong_redline.py
           python .agents/skills/hetong-craft/scripts/test_word_reader.py
           python .agents/skills/hetong-craft/scripts/test_review_audit.py
+          python .agents/skills/hetong-craft/scripts/test_platform_compat.py
+          python .agents/skills/hetong-server/scripts/test_hidden_change.py
           python .agents/skills/hetong-review/scripts/test_review_kit.py
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Contract text, Word reader and platform helpers
+        shell: pwsh
+        run: |
+          python .agents/skills/hetong-craft/scripts/test_hetong_redline.py
+          python .agents/skills/hetong-craft/scripts/test_word_reader.py
+          python .agents/skills/hetong-craft/scripts/test_review_audit.py
+          python .agents/skills/hetong-craft/scripts/test_platform_compat.py
+          python .agents/skills/hetong-server/scripts/test_hidden_change.py
+          python .agents/skills/hetong-review/scripts/test_review_kit.py
+      - name: PowerShell installer smoke test
+        shell: pwsh
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP "hetong-install-test"
+          New-Item -ItemType Directory -Force -Path $target | Out-Null
+          ./scripts/install.ps1 -Target $target
+          if (-not (Test-Path "$target/.agents/skills/hetong-craft/SKILL.md")) {
+            throw "Installed skill missing"
+          }

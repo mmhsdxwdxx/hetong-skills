@@ -1,5 +1,7 @@
 # docx 读写工作流
 
+
+> Windows 没有 `textutil`：将本文中的 `textutil` 命令替换为 `office_kit.py inspect` / LibreOffice 转换/验证；`textutil` 章节只适用于 macOS。
 合同以 docx 为主。本技能的 `scripts/docx_tool.py`（纯 Python ≥3.8 标准库，
 零依赖）用于普通无修订文档的读写；需要真实修订或批注时使用
 [红线与批注流程](docx-redline.md)及独立的 `hetong_redline.py`。**禁止**用文本替换工具（sed 等）直接改 docx

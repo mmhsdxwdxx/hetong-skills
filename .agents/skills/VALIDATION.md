@@ -48,6 +48,7 @@
 | `test_review_kit.py` | 12 项通过 |
 | `test_office_kit.py` | 12 项通过（环境、CJK 渲染、缓存、安全检查、PPTX 全流程） |
 | `test_review_audit.py` | 13 项通过（成品结构、历史批注/修订保留、锚点、关系、只读、ZIP/DTD 安全） |
+| `test_platform_compat.py` | 5 项通过（Windows venv、LOCALAPPDATA、LibreOffice 路径、系统字体、导入不依赖 Unix 模块） |
 | `test_hidden_change.py` | 8 项通过（直接改文、留痕改文、混合、历史清除、批注清除、隐藏文字/媒体、低相似度、覆盖保护） |
 | `test_word_reader.py` | 5 项通过（16 条修订、6 条批注、移动/格式/表格/隐藏文字/异常时间线/净额回改） |
 | Ruby/Psych 实际解析两份 frontmatter | 通过；目录名与 `name` 一致，description 合规 |

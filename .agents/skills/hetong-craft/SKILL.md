@@ -98,9 +98,9 @@ python3 $W analyze 合同.docx --out 产出/word-deep-read
 完整方法见 [Word 合同精细阅读](references/word-deep-read.md)，报告骨架见
 [Word 深读模板](assets/word-deep-read-report-template.md)。
 
-普通 docx 读写纪律、新合同生成路径（Markdown → HTML → textutil 转 docx）、
-编辑操作全集（set/insert-after/delete/add-row）与失败回退，见
-[docx-workflow](references/docx-workflow.md)。
+普通 docx 读写纪律、新合同生成路径（Markdown → HTML → `textutil`（macOS）或
+LibreOffice/模板转换（Windows））、编辑操作全集（set/insert-after/delete/add-row）与
+失败回退，见 [docx-workflow](references/docx-workflow.md)。
 
 Office 精修、PPTX 计划、无头批量渲染、缓存与视觉验收使用
 `scripts/office_kit.py`（自动切换隔离 Python 环境，不依赖 DSH/WPS GUI）：

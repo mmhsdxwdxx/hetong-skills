@@ -31,6 +31,23 @@ python3 $O doctor --full
 `doctor` 检查隔离 Python、LibreOffice、PDF 渲染和中文字体；`--full` 还会真实生成并渲染
 一份虚构 DOCX/PPTX，并从 PDF 文本层确认中文没有丢失。失败时不要继续批量办公任务。
 
+### Windows 11
+
+Windows 使用 PowerShell 安装和运行，不要求 WSL。进入项目测试目录后：
+
+```powershell
+# 在公开仓库根目录执行，安装到独立测试项目
+.\scripts\install.ps1 -Target "$HOME\Projects\hetong-test"
+
+# Office 运行环境
+py -3.12 .agents\skills\hetong-craft\scripts\office_kit.py setup
+py -3.12 .agents\skills\hetong-craft\scripts\office_kit.py doctor
+```
+
+Windows 的隔离虚拟环境位于 `%LOCALAPPDATA%\contact-office\venv`，LibreOffice 默认从
+`C:\Program Files\LibreOffice\program\soffice.exe` 发现；Windows 使用系统字体，不生成
+Unix fontconfig 配置。若 Word/WPS 正打开目标文件，先关闭或复制到独立路径再处理。
+
 ### 1. 一次盘点全部输入
 
 ```bash

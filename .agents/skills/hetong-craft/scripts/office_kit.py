@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """仓库级 Office 工具：结构检查、PPTX 精修、批量无头渲染。
 
 本文件自身只依赖 Python 标准库；除 ``setup`` 外的命令会自动切换到隔离的
@@ -23,7 +22,7 @@ import tempfile
 import time
 import zipfile
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 KIT_VERSION = "1.0.0"
 SCHEMA = "contact-office-kit/1"
@@ -83,17 +82,51 @@ def safe_stem(name: str, limit: int = 48) -> str:
     return (cleaned or "document")[:limit]
 
 
+def _is_windows() -> bool:
+    return os.name == "nt"
+
+
+def _user_data_root() -> Path:
+    if _is_windows():
+        base = os.environ.get("LOCALAPPDATA") or os.environ.get("APPDATA")
+        if base:
+            return Path(base) / "contact-office"
+        return Path.home() / "AppData" / "Local" / "contact-office"
+    return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / "contact-office"
+
+
+def _user_cache_root() -> Path:
+    if _is_windows():
+        base = os.environ.get("LOCALAPPDATA") or os.environ.get("APPDATA")
+        if base:
+            return Path(base) / "contact-office"
+        return Path.home() / "AppData" / "Local" / "contact-office"
+    return Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "contact-office"
+
+
+def _venv_python(venv: Path) -> Path:
+    if _is_windows():
+        return venv / "Scripts" / "python.exe"
+    return venv / "bin" / "python"
+
+
+def _libreoffice_hint() -> str:
+    if _is_windows():
+        return "安装 LibreOffice for Windows 后重试（默认路径 C:\\Program Files\\LibreOffice\\program\\soffice.exe）"
+    return "安装 LibreOffice 后重试：brew install --cask libreoffice"
+
+
 def _runtime_python() -> Path | None:
     candidates: list[Path] = []
     configured = os.environ.get("CONTACT_OFFICE_VENV")
     if configured:
-        candidates.append(Path(configured).expanduser() / "bin" / "python")
-    data_home = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
-    candidates.append(data_home / "contact-office" / "venv" / "bin" / "python")
-    candidates.append(SCRIPT_DIR.parent / ".office-venv" / "bin" / "python")
+        configured_path = Path(configured).expanduser()
+        candidates.append(configured_path if configured_path.is_file() else _venv_python(configured_path))
+    candidates.append(_venv_python(_user_data_root() / "venv"))
+    candidates.append(_venv_python(SCRIPT_DIR.parent / ".office-venv"))
     for candidate in candidates:
         try:
-            usable = candidate.is_file() and os.access(candidate, os.X_OK)
+            usable = candidate.is_file() and (_is_windows() or os.access(candidate, os.X_OK))
         except OSError:
             usable = False
         if usable:
@@ -121,8 +154,9 @@ def ensure_runtime(argv: list[str]) -> None:
         )
         raise SystemExit(completed.returncode)
     raise OfficeKitError(
-        "Office Python 运行环境不完整。先运行：python3 "
-        f"{Path(__file__).resolve()} setup",
+        "Office Python 运行环境不完整。先运行："
+        + ("python " if _is_windows() else "python3 ")
+        + f"{Path(__file__).resolve()} setup",
         code=2,
     )
 
@@ -150,16 +184,23 @@ def _package_versions() -> dict[str, str | None]:
 
 
 def _lo_path() -> Path | None:
-    for candidate in (
-        shutil.which("soffice"),
-        "/Applications/LibreOffice.app/Contents/MacOS/soffice",
-        "/usr/bin/libreoffice",
-        "/usr/local/bin/libreoffice",
-    ):
+    candidates: list[str | None] = [shutil.which("soffice"), shutil.which("soffice.exe")]
+    if _is_windows():
+        for env_name in ("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA"):
+            base = os.environ.get(env_name)
+            if base:
+                candidates.append(str(Path(base) / "LibreOffice" / "program" / "soffice.exe"))
+    else:
+        candidates.extend([
+            "/Applications/LibreOffice.app/Contents/MacOS/soffice",
+            "/usr/bin/libreoffice",
+            "/usr/local/bin/libreoffice",
+        ])
+    for candidate in candidates:
         if candidate:
             path = Path(candidate)
             try:
-                usable = path.is_file() and os.access(path, os.X_OK)
+                usable = path.is_file() and (_is_windows() or os.access(path, os.X_OK))
             except OSError:
                 usable = False
             if usable:
@@ -186,18 +227,14 @@ def _lo_version(path: Path | None = None) -> str | None:
 
 
 def setup_runtime(args: argparse.Namespace) -> int:
-    venv = Path(args.venv).expanduser().resolve() if args.venv else (
-        Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
-        / "contact-office"
-        / "venv"
-    )
+    venv = Path(args.venv).expanduser().resolve() if args.venv else (_user_data_root() / "venv")
     if not REQUIREMENTS.is_file():
         raise OfficeKitError(f"缺少版本锁定文件：{REQUIREMENTS}")
     if not venv.exists():
         import venv as venv_module
 
         venv_module.EnvBuilder(with_pip=True, clear=False).create(venv)
-    python = venv / "bin" / "python"
+    python = _venv_python(venv)
     if not python.is_file():
         raise OfficeKitError(f"虚拟环境创建失败：{python}")
     command = [str(python), "-m", "pip", "install", "--disable-pip-version-check", "-r", str(REQUIREMENTS)]
@@ -233,7 +270,7 @@ def setup_runtime(args: argparse.Namespace) -> int:
         "venv": str(venv),
         "python": str(python),
         "packages": packages,
-        "next": "安装 LibreOffice 和 CJK 字体后运行 doctor --full：brew install --cask libreoffice",
+        "next": "安装 LibreOffice 后运行 doctor --full：" + _libreoffice_hint(),
     })
     return 0
 
@@ -344,57 +381,56 @@ def _parse_pages(spec: str | None, count: int) -> list[int]:
 
 
 def _flock(path: Path):
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if _is_windows():
+        import importlib
+
+        msvcrt = cast(Any, importlib.import_module("msvcrt"))
+        handle = path.open("a+b")
+        handle.seek(0, os.SEEK_END)
+        if handle.tell() == 0:
+            handle.write(b"\0")
+            handle.flush()
+        handle.seek(0)
+        msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+        return handle
     import fcntl
 
-    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     handle = path.open("a+")
     fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
     return handle
 
 
 def _lo_profile() -> Path:
-    root = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "contact-office"
-    profile = root / "libreoffice-profile"
+    profile = _user_cache_root() / "libreoffice-profile"
     profile.mkdir(parents=True, exist_ok=True, mode=0o700)
     return profile
 
 
 def _font_directories() -> list[Path]:
     home = Path.home()
-    candidates = [
-        Path("/System/Library/Fonts"),
-        Path("/System/Library/Fonts/Supplemental"),
-        Path("/Library/Fonts"),
-        home / "Library" / "Fonts",
-        home / ".local" / "share" / "fonts",
-        home / ".fonts",
-        Path("/usr/share/fonts"),
-        Path("/usr/local/share/fonts"),
-        Path("/Applications/LibreOffice.app/Contents/Resources/fonts/truetype"),
-    ]
+    if _is_windows():
+        candidates = [
+            Path(os.environ.get("WINDIR", "C:\\Windows")) / "Fonts",
+            home / "AppData" / "Local" / "Microsoft" / "Windows" / "Fonts",
+        ]
+    else:
+        candidates = [
+            Path("/System/Library/Fonts"),
+            Path("/System/Library/Fonts/Supplemental"),
+            Path("/Library/Fonts"),
+            home / "Library" / "Fonts",
+            home / ".local" / "share" / "fonts",
+            home / ".fonts",
+            Path("/usr/share/fonts"),
+            Path("/usr/local/share/fonts"),
+            Path("/Applications/LibreOffice.app/Contents/Resources/fonts/truetype"),
+        ]
     return [path for path in candidates if path.is_dir()]
 
 
-def _font_environment() -> tuple[Path, str]:
-    data = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / "contact-office"
-    config_dir = data / "fontconfig"
-    cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "contact-office" / "fontconfig-cache"
-    config_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
-    cache_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
-    directories = _font_directories()
-    lines = [
-        '<?xml version="1.0"?>',
-        '<!DOCTYPE fontconfig SYSTEM "fonts.dtd">',
-        '<fontconfig>',
-        *[f"  <dir>{html.escape(str(path))}</dir>" for path in directories],
-        f"  <cachedir>{html.escape(str(cache_dir))}</cachedir>",
-        '</fontconfig>',
-    ]
-    config = config_dir / "fonts.conf"
-    content = "\n".join(lines) + "\n"
-    if not config.is_file() or config.read_text() != content:
-        config.write_text(content)
-    digest = hashlib.sha256(content.encode())
+def _font_signature(directories: list[Path]) -> str:
+    digest = hashlib.sha256()
     for directory in directories:
         try:
             entries = sorted(directory.rglob("*"))
@@ -408,13 +444,40 @@ def _font_environment() -> tuple[Path, str]:
             except OSError:
                 continue
             digest.update(f"{path}:{stat_info.st_size}:{stat_info.st_mtime_ns}".encode())
+    return digest.hexdigest()[:24]
+
+
+def _font_environment() -> tuple[Path | None, str]:
+    directories = _font_directories()
+    if _is_windows():
+        # Windows LibreOffice 使用系统字体，不套用 Unix fontconfig 配置。
+        return None, _font_signature(directories)
+    data = _user_data_root()
+    config_dir = data / "fontconfig"
+    cache_dir = _user_cache_root() / "fontconfig-cache"
+    config_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    cache_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    lines = [
+        '<?xml version="1.0"?>',
+        '<!DOCTYPE fontconfig SYSTEM "fonts.dtd">',
+        '<fontconfig>',
+        *[f"  <dir>{html.escape(str(path))}</dir>" for path in directories],
+        f"  <cachedir>{html.escape(str(cache_dir))}</cachedir>",
+        '</fontconfig>',
+    ]
+    config = config_dir / "fonts.conf"
+    content = "\n".join(lines) + "\n"
+    if not config.is_file() or config.read_text() != content:
+        config.write_text(content)
+    digest = hashlib.sha256(content.encode())
+    digest.update(_font_signature(directories).encode())
     return config, digest.hexdigest()[:24]
 
 
 def _convert_batch(inputs: list[Path], out_dir: Path, timeout: int) -> dict[str, Any]:
     binary = _lo_path()
     if binary is None:
-        raise OfficeKitError("未找到 LibreOffice。安装：brew install --cask libreoffice")
+        raise OfficeKitError(f"未找到 LibreOffice。{_libreoffice_hint()}")
     out_dir.mkdir(parents=True, exist_ok=True)
     profile = _lo_profile()
     font_config, font_signature = _font_environment()
@@ -427,12 +490,14 @@ def _convert_batch(inputs: list[Path], out_dir: Path, timeout: int) -> dict[str,
             "--convert-to", "pdf", "--outdir", str(out_dir), *[str(path) for path in inputs],
         ]
         environment = os.environ.copy()
-        environment["FONTCONFIG_FILE"] = str(font_config)
+        if font_config is not None:
+            environment["FONTCONFIG_FILE"] = str(font_config)
         if sys.platform.startswith("linux"):
             environment.setdefault("SAL_USE_VCLPLUGIN", "svp")
+        creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if _is_windows() else 0
         completed = subprocess.run(
             command, capture_output=True, text=True, timeout=timeout,
-            check=False, env=environment,
+            check=False, env=environment, creationflags=creationflags,
         )
     except subprocess.TimeoutExpired as exc:
         raise OfficeKitError(f"LibreOffice 转换超时（{timeout}s）") from exc
@@ -651,7 +716,7 @@ def render_documents(args: argparse.Namespace) -> dict[str, Any]:
                 "output_dir": output_root / f"{safe_stem(source.stem)}-{source_sha[:8]}",
             })
         if any(job["source"].suffix.lower() != ".pdf" and not lo for job in render_jobs):
-            raise OfficeKitError("需要 LibreOffice 渲染 Office 文件；安装：brew install --cask libreoffice")
+            raise OfficeKitError(f"需要 LibreOffice 渲染 Office 文件。{_libreoffice_hint()}")
         conversion_root = stage / "pdf"
         conversion_root.mkdir()
         office_jobs = [job for job in render_jobs if job["source"].suffix.lower() != ".pdf"]
@@ -866,7 +931,7 @@ def doctor(args: argparse.Namespace) -> dict[str, Any]:
         "venv": sys.prefix if sys.prefix != sys.base_prefix else os.environ.get("VIRTUAL_ENV"),
         "packages": _package_versions(),
         "libreoffice": {"path": str(current_lo) if current_lo else None, "version": current_lo_version},
-        "fonts": {"config": str(font_config), "directories": len(_font_directories()), "signature": font_signature},
+        "fonts": {"config": str(font_config) if font_config is not None else None, "directories": len(_font_directories()), "signature": font_signature},
         "pdfium": {},
         "full_render": None,
     }

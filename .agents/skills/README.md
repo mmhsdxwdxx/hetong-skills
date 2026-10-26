@@ -53,6 +53,7 @@ Pi 也可显式使用 `/skill:hetong-craft`、`/skill:hetong-review` 或 `/skill
 python3 .agents/skills/hetong-craft/scripts/test_hetong_redline.py
 python3 .agents/skills/hetong-craft/scripts/test_word_reader.py
 python3 .agents/skills/hetong-craft/scripts/test_office_kit.py
+python3 .agents/skills/hetong-craft/scripts/test_platform_compat.py
 python3 .agents/skills/hetong-craft/scripts/test_review_audit.py
 python3 .agents/skills/hetong-server/scripts/test_hidden_change.py
 python3 .agents/skills/hetong-review/scripts/test_review_kit.py

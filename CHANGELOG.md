@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0-dev
+
+- 增加 Windows 11 原生适配：`install.ps1` / `install.cmd`、`Scripts\python.exe` 虚拟环境路径、LibreOffice Windows 路径、`msvcrt` 文件锁和系统字体支持。
+- 增加 Windows CI 与平台路径回归；macOS Office 渲染回归保持通过。
+- 未改变 `main` / `v1.2.0` 稳定版。
+
 ## 1.2.0
 
 - 为 `hetong-server` 增加两版近似 DOCX 的未留痕改动检测：直接改文、留痕改文、历史/批注减少、隐藏文字和媒体变化。

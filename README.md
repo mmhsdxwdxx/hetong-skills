@@ -38,6 +38,28 @@ cp -R .agents/skills/. /path/to/your-project/.agents/skills/
 安装脚本使用 `rsync -a` 覆盖同名技能文件，但**不会删除**目标项目中的其他技能或文件。
 如果目标项目已有本地修改，请先备份或使用版本控制审查差异。
 
+### Windows 11
+
+Windows 原生使用 PowerShell，不需要 WSL：
+
+```powershell
+git clone --branch develop https://github.com/mmhsdxwdxx/hetong-skills.git
+cd hetong-skills
+.\scripts\install.ps1 -Target "$HOME\Projects\hetong-test"
+```
+
+也可以直接运行 `scripts\install.cmd`。Windows 安装器使用系统自带的 `robocopy`，不会删除
+目标目录中的额外文件。Office 运行环境：
+
+```powershell
+py -3.12 .agents\skills\hetong-craft\scripts\office_kit.py setup
+py -3.12 .agents\skills\hetong-craft\scripts\office_kit.py doctor
+```
+
+隔离环境在 `%LOCALAPPDATA%\contact-office\venv`；LibreOffice 默认从
+`C:\Program Files\LibreOffice\program\soffice.exe` 发现。Windows 使用系统字体，
+不生成 Unix fontconfig 配置。
+
 从目标项目根目录启动宿主，技能才会通过项目 `.agents/skills/` 被发现。Pi 可显式使用：
 
 ```text
@@ -76,6 +98,7 @@ python3 .agents/skills/hetong-craft/scripts/test_hetong_redline.py
 python3 .agents/skills/hetong-craft/scripts/test_word_reader.py
 python3 .agents/skills/hetong-craft/scripts/test_office_kit.py
 python3 .agents/skills/hetong-craft/scripts/test_review_audit.py
+python3 .agents/skills/hetong-craft/scripts/test_platform_compat.py
 python3 .agents/skills/hetong-server/scripts/test_hidden_change.py
 python3 .agents/skills/hetong-review/scripts/test_review_kit.py
 ```
