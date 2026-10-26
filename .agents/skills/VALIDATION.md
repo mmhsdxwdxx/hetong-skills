@@ -14,13 +14,14 @@
 
 已把 Codex 导出的 `hetong-server` 作为**服务器采购/销售合同专用 overlay** 并入：
 
-- `hetong-server/SKILL.md`：专用触发、十一项 B01—B11 对照、修订/批注规则；
-- `references/`：开场分流、量化与履约、修订、批注、十一项原文基线；
+- `hetong-server/SKILL.md`：专用触发、乙方 B01—B11 与甲方 A01—A04 对照、修订/批注规则；
+- `references/`：开场分流、量化与履约、修订、批注、乙方十一项基线、甲方 A01—A04；
 - 复用 `hetong-craft` 的 `word_reader.py`、`hetong_redline.py`、`office_kit.py`；
+- 新增甲方视角 `buyer-protection-clauses.md`（A01—A04），与乙方 B01—B11 分列，避免两套立场互相替代；
 - 将独立审阅结构审计器纳入 `hetong-craft/scripts/audit_docx_review.py`，
   测试纳入 `test_review_audit.py`；
 - `agents/openai.yaml` 仅保留为可选宿主展示元数据，不构成第二份实现；
-- `B01—B11` 只在服务器 profile 中启用，不替换通用审核的 R/Q/C、S-ID 或只读闸门。
+- `B01—B11` 与 `A01—A04` 只在服务器 profile 中按立场启用，不替换通用审核的 R/Q/C、S-ID 或只读闸门。
 
 这套 profile 的十一项条文来自用户提供的商业基线，不等同于法律有效性结论；其中的历史台数、比例、金额只作上下文，不无条件套用到其他合同。导入源包 SHA-256 为 `94536649af44ae8808a4a921aad75b9da0daa21f837d5b1feca9dd6badccadd4`（10 个条目），未包含真实合同或历史任务；`INSTALL.md` 未作为运行时入口复制，改为本仓库的集成说明。
 
@@ -128,8 +129,8 @@ Office 工具自动生成专用 fontconfig 配置，只通过环境变量作用�
 | 宿主 | 实测范围 | 结果 |
 |---|---|---|
 | Pi | 新进程启动；显式加载 `hetong-craft → mode-review → hetong-review` | 通过；主链两个 `SKILL.md` 均来自本仓库，五模式正确 |
-| Pi（服务器 profile） | 新进程启动；显式加载 `hetong-server → eleven-baselines → quantitative-review` | 通过；三份文件均来自本仓库，专用触发与 B01—B11 读取正确 |
-| Codex CLI 0.163.0 | 只读、临时会话；加载 `hetong-server` 与十一项基线，运行 `audit_docx_review.py --help` | 通过；文件读取和脚本退出状态 0（Firecrawl MCP 认证错误与该探针无关） |
+| Pi（服务器 profile） | 新进程启动；显式加载 `hetong-server → eleven-baselines → buyer-protection-clauses` | 通过；主链来自本仓库，乙方/甲方基线与专用触发读取正确 |
+| Codex CLI 0.163.0 | 只读、临时会话；加载 `hetong-server` 与对应立场基线，运行 `audit_docx_review.py --help` | 通过；文件读取和脚本退出状态 0（Firecrawl MCP 认证错误与该探针无关） |
 | DSH 0.2.1-rc.2 | 直接调用本机 `FileSystemSkillProvider`，隔离用户技能根 | 通过；两份技能均为 `project-agents`，正文与资源基目录加载正确，目录观测完整 |
 
 这些探针证明**项目发现、显式加载、相对资源和脚本入口**可用，不是全部自然语言触发率或完整合同任务的质量基准。Python 3.9 本机直接运行 `test_hetong_redline.py`、`test_word_reader.py`、`test_review_audit.py`、`test_review_kit.py` 和 `test_office_kit.py` 均已通过；Office 测试由隔离环境执行。

@@ -52,7 +52,7 @@ description: |
 确认模式与范围，不要自行假设。
 
 **服务器采购/销售合同**：在通用模式之上叠加 [hetong-server](../hetong-server/SKILL.md)
-专用 profile（十一项商业底线、交付/验收/担保/现金流）；该 profile 只适用于服务器设备
+专用 profile（乙方 B01—B11 或甲方 A01—A04、交付/验收/担保/现金流）；该 profile 只适用于服务器设备
 采购/销售，不把其中底线泛化到其他合同。加载后仍以本技能和 `hetong-review` 的权限、
 R/Q/C 追溯、Word 深读和交付门禁为准。
 
@@ -130,7 +130,7 @@ python3 $O render 产出/*.docx 产出/*.pptx --out 产出/_预览 --dpi 120
   的精确修改、渲染、缓存、效率与视觉验收
 - [Word 合同精细阅读](references/word-deep-read.md)：修订/批注、时间线、批注线程、
   条款业务变化链和证据分层
-- [服务器合同专用 profile](../hetong-server/SKILL.md)：十一项商业底线、服务器交付/验收/
+- [服务器合同专用 profile](../hetong-server/SKILL.md)：乙方 B01—B11 或甲方 A01—A04、服务器交付/验收/
   担保/现金流分析；只在服务器采购/销售任务加载
 - [风险模式库](references/risk-patterns.md)：常见交易结构风险与合同对策
 - 模板资产：[审查报告](assets/review-report-template.md) ·

@@ -17,9 +17,9 @@
 │   ├── assets/
 │   ├── scripts/
 │   └── evals/          # 仅虚构评测材料
-└── hetong-server/      # 服务器采购/销售合同专用 profile；非通用合同底线
+└── hetong-server/      # 服务器采购/销售合同专用 profile；乙方 B01—B11、甲方 A01—A04
     ├── SKILL.md
-    ├── references/     # 十一项基线、量化、受理、修订、批注
+    ├── references/     # 两套立场基线、量化、受理、修订、批注
     └── agents/         # 可选宿主展示元数据
 ```
 
@@ -35,6 +35,7 @@
 - `这份服务器采购合同修订和批注很多，请先重建原文/接受视图和时间线，再按服务器底线审核。`
 - `按计划精修这份 PPTX，先预演；提交后批量渲染并检查中文和版式。`
 - `请使用 hetong-server 审核服务器销售合同，我方是卖方，只审不改。`
+- `请使用 hetong-server 审核服务器采购合同，我方是甲方，重点核对 A01—A04 保函与共管账户。`
 
 Pi 也可显式使用 `/skill:hetong-craft`、`/skill:hetong-review` 或 `/skill:hetong-server`。其他宿主按各自的技能选择方式调用，或直接说明技能名。修改技能后，新开会话或执行宿主的重载操作；Pi 使用 `/reload`。
 
@@ -42,7 +43,7 @@ Pi 也可显式使用 `/skill:hetong-craft`、`/skill:hetong-review` 或 `/skill
 
 1. 只修改本目录中的实现；技能之间的相对路径必须保持有效。
 2. 合同文本核心脚本以 Python 3.9+ 标准库为主；Office 精修/无头渲染通过 `scripts/office_kit.py` 自动切换到隔离运行环境，依赖锁定在 `scripts/office-requirements.lock`。LibreOffice 只用于转换与渲染，不依赖 DSH、WPS 服务或上传合同。
-3. 真实合同、审核报告、用户交易信息和临时输出不得放入技能目录；仍按仓库 `AGENTS.md` 的任务目录与保密规则处理。经用户明确授权的领域基线（如 `hetong-server` 的十一项）可作为技能资料保留，但不得附带真实交易材料。
+3. 真实合同、审核报告、用户交易信息和临时输出不得放入技能目录；仍按仓库 `AGENTS.md` 的任务目录与保密规则处理。经用户明确授权的领域基线（如 `hetong-server` 的 B01—B11 与 A01—A04）可作为技能资料保留，但不得附带真实交易材料。
 4. 不把 `.pyc`、`__pycache__`、Office 锁文件或测试临时文件提交入库。
 5. 每次改动后运行：
 
@@ -60,7 +61,7 @@ Office 环境或字体变化后先运行：
 python3 .agents/skills/hetong-craft/scripts/office_kit.py doctor --full
 ```
 
-使用与排障见 [hetong-craft Office 流程](hetong-craft/references/office-workflow.md)。Word 修订/批注深读见 [Word 合同精细阅读](hetong-craft/references/word-deep-read.md)。服务器合同专用方法见 [hetong-server](hetong-server/SKILL.md)，其十一项底线只适用于该 profile。
+使用与排障见 [hetong-craft Office 流程](hetong-craft/references/office-workflow.md)。Word 修订/批注深读见 [Word 合同精细阅读](hetong-craft/references/word-deep-read.md)。服务器合同专用方法见 [hetong-server](hetong-server/SKILL.md)，其中乙方 B01—B11 与甲方 A01—A04 只适用于对应立场。
 
 6. 涉及路由、frontmatter 或目录结构时，另做 Pi、Codex、DSH 发现与加载探针；不能只凭文件存在判断可用。
 
