@@ -1,0 +1,51 @@
+{
+  "schema": "contact-pptx-plan/1",
+  "source": "原件/演示文稿.pptx",
+  "source_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "output": "产出/演示文稿_v2_修订稿.pptx",
+  "operations": [
+    {
+      "id": "O-001",
+      "op": "replace_text",
+      "slide": 3,
+      "shape_id": 12,
+      "paragraph": 2,
+      "old": "30%",
+      "new": "40%"
+    },
+    {
+      "id": "O-002",
+      "op": "set_table_cell",
+      "slide": 4,
+      "shape_id": 7,
+      "row": 2,
+      "column": 3,
+      "text": "待确认"
+    },
+    {
+      "id": "O-003",
+      "op": "set_font",
+      "slide": 3,
+      "shape_id": 8,
+      "paragraph": 1,
+      "size_pt": 28,
+      "bold": true
+    },
+    {
+      "id": "O-004",
+      "op": "set_geometry",
+      "slide": 4,
+      "shape_id": 9,
+      "left_in": 1.0,
+      "top_in": 2.0,
+      "width_in": 5.0,
+      "height_in": 1.5
+    },
+    {
+      "id": "O-005",
+      "op": "set_notes",
+      "slide": 3,
+      "text": "依据 R-004：付款比例以用户已确认方案为准。\n不得在此新增未确认的商业条件。"
+    }
+  ]
+}
