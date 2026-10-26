@@ -9,13 +9,14 @@
 .agents/skills/
 ├── hetong-craft/     # 起草、修订、润色、完善、审核统一入口；Word 红线/批注、Word 深读、Office 工具
 ├── hetong-review/    # 深度审核、跨合同勾稽、版本对比、关闭核验与保护性条款
-└── hetong-server/    # 服务器采购/销售合同专用 profile；乙方 B01—B11、甲方 A01—A04
+└── hetong-server/    # 服务器采购/销售合同专用 profile；乙方 B01—B11、甲方 A01—A04、两版暗改检测
 ```
 
 核心方法、模板、脚本和虚构测试材料均在技能目录内。`hetong-server` 的公开版本已移除
 真实交易排期、历史金额/台数、源文档指纹和具体署名，仅保留可复用的方法结构。乙方视角
 B01—B11 与甲方视角 A01—A04 分列；A01—A04 覆盖保函受益人/生效、BIS 与政府禁令、保函
-有效期与提取、资金共管账户及 U 盾权限。
+有效期与提取、资金共管账户及 U 盾权限。`hetong-server/scripts/hidden_change.py` 可对
+前后两版近似 DOCX 检查绕过修订记录的直接改文，并区分留痕改动、历史减少和非文本变化。
 
 ## 安装
 
@@ -75,6 +76,7 @@ python3 .agents/skills/hetong-craft/scripts/test_hetong_redline.py
 python3 .agents/skills/hetong-craft/scripts/test_word_reader.py
 python3 .agents/skills/hetong-craft/scripts/test_office_kit.py
 python3 .agents/skills/hetong-craft/scripts/test_review_audit.py
+python3 .agents/skills/hetong-server/scripts/test_hidden_change.py
 python3 .agents/skills/hetong-review/scripts/test_review_kit.py
 ```
 

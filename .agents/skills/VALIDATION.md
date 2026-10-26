@@ -10,7 +10,14 @@
 - 原 Pi 全局目录已移至技能扫描范围外的备份：`$HOME/.pi/agent/workspaces/contact-repo-skill-migration/pi-global-backup/`。其他全局技能未改动。
 - 未读取、复制或修改真实合同；未改动 DSH、Codex 全局配置。
 
-## 服务器合同 profile 并入
+## 两版近似合同的未留痕改动
+
+`hetong-server/scripts/hidden_change.py` 检测两版 DOCX 的未留痕文字改动，并用 `HC` 编号输出报告。
+它以“后一版拒绝全部修订”与前一版基线比较，区分直接改文、可由修订解释的改动、审阅历史减少和非文本变化。
+
+使用虚构样本验证：直接改文、真实留痕改文、混合、净额修订历史清除、批注清除、隐藏文字、媒体替换、低相似度和输出覆盖保护。
+工具只读，不自动接受/拒绝修订；结论不指控主观恶意，仍须核对来源、授权和沟通记录。
+
 
 已把 Codex 导出的 `hetong-server` 作为**服务器采购/销售合同专用 overlay** 并入：
 
@@ -41,6 +48,7 @@
 | `test_review_kit.py` | 12 项通过 |
 | `test_office_kit.py` | 12 项通过（环境、CJK 渲染、缓存、安全检查、PPTX 全流程） |
 | `test_review_audit.py` | 13 项通过（成品结构、历史批注/修订保留、锚点、关系、只读、ZIP/DTD 安全） |
+| `test_hidden_change.py` | 8 项通过（直接改文、留痕改文、混合、历史清除、批注清除、隐藏文字/媒体、低相似度、覆盖保护） |
 | `test_word_reader.py` | 5 项通过（16 条修订、6 条批注、移动/格式/表格/隐藏文字/异常时间线/净额回改） |
 | Ruby/Psych 实际解析两份 frontmatter | 通过；目录名与 `name` 一致，description 合规 |
 | 77 个相对 Markdown 链接、60 个技能文件、必要资源、无软链接、无 Python/Ruff 缓存、无用户目录绝对路径 | 通过 |

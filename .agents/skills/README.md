@@ -19,7 +19,8 @@
 │   └── evals/          # 仅虚构评测材料
 └── hetong-server/      # 服务器采购/销售合同专用 profile；乙方 B01—B11、甲方 A01—A04
     ├── SKILL.md
-    ├── references/     # 两套立场基线、量化、受理、修订、批注
+    ├── references/     # 两套立场基线、量化、受理、修订、批注、暗改检测
+    ├── scripts/        # hidden_change.py（两版近似合同未留痕改动）
     └── agents/         # 可选宿主展示元数据
 ```
 
@@ -36,6 +37,7 @@
 - `按计划精修这份 PPTX，先预演；提交后批量渲染并检查中文和版式。`
 - `请使用 hetong-server 审核服务器销售合同，我方是卖方，只审不改。`
 - `请使用 hetong-server 审核服务器采购合同，我方是甲方，重点核对 A01—A04 保函与共管账户。`
+- `这是同一合同的前后两版，请正常对比之余，检查有没有绕过修订直接改正文的地方。`
 
 Pi 也可显式使用 `/skill:hetong-craft`、`/skill:hetong-review` 或 `/skill:hetong-server`。其他宿主按各自的技能选择方式调用，或直接说明技能名。修改技能后，新开会话或执行宿主的重载操作；Pi 使用 `/reload`。
 
@@ -52,6 +54,7 @@ python3 .agents/skills/hetong-craft/scripts/test_hetong_redline.py
 python3 .agents/skills/hetong-craft/scripts/test_word_reader.py
 python3 .agents/skills/hetong-craft/scripts/test_office_kit.py
 python3 .agents/skills/hetong-craft/scripts/test_review_audit.py
+python3 .agents/skills/hetong-server/scripts/test_hidden_change.py
 python3 .agents/skills/hetong-review/scripts/test_review_kit.py
 ```
 
@@ -61,7 +64,7 @@ Office 环境或字体变化后先运行：
 python3 .agents/skills/hetong-craft/scripts/office_kit.py doctor --full
 ```
 
-使用与排障见 [hetong-craft Office 流程](hetong-craft/references/office-workflow.md)。Word 修订/批注深读见 [Word 合同精细阅读](hetong-craft/references/word-deep-read.md)。服务器合同专用方法见 [hetong-server](hetong-server/SKILL.md)，其中乙方 B01—B11 与甲方 A01—A04 只适用于对应立场。
+使用与排障见 [hetong-craft Office 流程](hetong-craft/references/office-workflow.md)。Word 修订/批注深读见 [Word 合同精细阅读](hetong-craft/references/word-deep-read.md)。服务器合同专用方法见 [hetong-server](hetong-server/SKILL.md)，其中乙方 B01—B11 与甲方 A01—A04 只适用于对应立场；两版近似合同的暗改检测见 [未留痕改动说明](hetong-server/references/hidden-change-review.md)。
 
 6. 涉及路由、frontmatter 或目录结构时，另做 Pi、Codex、DSH 发现与加载探针；不能只凭文件存在判断可用。
 
