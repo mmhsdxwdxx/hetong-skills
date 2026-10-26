@@ -71,7 +71,7 @@ import zipfile
 from collections import Counter
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from typing import TypeGuard
@@ -82,6 +82,13 @@ from xml.dom import minidom
 from xml.parsers.expat import ExpatError
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import quoteattr
+
+# Windows 控制台默认编码可能不是 UTF-8；命令行输出统一为 UTF-8。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        cast(Any, _stream).reconfigure(encoding="utf-8")
+    except (AttributeError, OSError):
+        pass
 
 # --------------------------------------------------------------------------
 # 常量

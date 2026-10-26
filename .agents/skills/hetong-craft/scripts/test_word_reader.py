@@ -304,7 +304,7 @@ def sha256(path: Path) -> str:
 def run_cli(*args: str, expect: int = 0) -> dict:
     completed = subprocess.run(
         [sys.executable, str(SCRIPT), *args],
-        capture_output=True, text=True, check=False,
+        capture_output=True, text=True, encoding="utf-8", check=False,
     )
     if completed.returncode != expect:
         raise AssertionError(
@@ -335,7 +335,7 @@ class WordReaderTests(unittest.TestCase):
         output = self.root / name
         summary = run_cli("analyze", str(source), "--out", str(output), *extra)
         self.assertTrue(summary["ok"])
-        data = json.loads((output / "deep-read.json").read_text())
+        data = json.loads((output / "deep-read.json").read_text(encoding="utf-8"))
         return data, output
 
     def test_views_comments_timeline_and_clauses(self) -> None:
@@ -348,10 +348,10 @@ class WordReaderTests(unittest.TestCase):
         self.assertEqual(data["counts"]["comment_threads"], 5)
         self.assertEqual(data["counts"]["unresolved_or_unknown_comments"], 4)
 
-        accepted = (output / "accepted.md").read_text()
-        original = (output / "original.md").read_text()
-        markup = (output / "markup.md").read_text()
-        report = (output / "deep-read.md").read_text()
+        accepted = (output / "accepted.md").read_text(encoding="utf-8")
+        original = (output / "original.md").read_text(encoding="utf-8")
+        markup = (output / "markup.md").read_text(encoding="utf-8")
+        report = (output / "deep-read.md").read_text(encoding="utf-8")
         self.assertIn("[WR0002 · 正文] 付款比例为含税40%", accepted)
         self.assertNotIn("[WR0001 · 正文] 第一条 付款与验收", accepted)
         self.assertIn("批注涉及：请确认比例与验收期限", report)
@@ -428,13 +428,13 @@ class WordReaderTests(unittest.TestCase):
         self.assertEqual(data["counts"]["net_zero_clauses"], 1)
         self.assertIn("net_zero_changes", {item["kind"] for item in data["anomalies"]})
         self.assertEqual(
-            (output / "accepted.md").read_text().count("保证金为10%。"),
-            (output / "original.md").read_text().count("保证金为10%。"),
+            (output / "accepted.md").read_text(encoding="utf-8").count("保证金为10%。"),
+            (output / "original.md").read_text(encoding="utf-8").count("保证金为10%。"),
         )
 
     def test_include_hidden_and_clean_document(self) -> None:
         data, output = self.analyze(self.docx, "hidden", "--include-hidden")
-        accepted = (output / "accepted.md").read_text()
+        accepted = (output / "accepted.md").read_text(encoding="utf-8")
         self.assertIn("内部说明", accepted)
         self.assertIn("样式隐藏的底价信息", accepted)
         clean, clean_output = self.analyze(self.clean, "clean")

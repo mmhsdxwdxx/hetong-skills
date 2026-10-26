@@ -26,6 +26,13 @@ from typing import Any, cast
 
 KIT_VERSION = "1.0.0"
 SCHEMA = "contact-office-kit/1"
+
+# Windows 控制台默认编码可能不是 UTF-8；命令行输出统一为 UTF-8。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        cast(Any, _stream).reconfigure(encoding="utf-8")
+    except (AttributeError, OSError):
+        pass
 SCRIPT_DIR = Path(__file__).resolve().parent
 REQUIREMENTS = SCRIPT_DIR / "office-requirements.lock"
 REQUIRED_MODULES = ("docx", "pptx", "openpyxl", "lxml", "defusedxml", "PIL", "pypdf", "pypdfium2")
@@ -61,7 +68,7 @@ def _json_dump(data: Any, path: Path | None = None) -> None:
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.tmp-{os.getpid()}")
-    temporary.write_text(text)
+    temporary.write_text(text, encoding="utf-8")
     os.replace(temporary, path)
 
 
@@ -467,8 +474,8 @@ def _font_environment() -> tuple[Path | None, str]:
     ]
     config = config_dir / "fonts.conf"
     content = "\n".join(lines) + "\n"
-    if not config.is_file() or config.read_text() != content:
-        config.write_text(content)
+    if not config.is_file() or config.read_text(encoding="utf-8") != content:
+        config.write_text(content, encoding="utf-8")
     digest = hashlib.sha256(content.encode())
     digest.update(_font_signature(directories).encode())
     return config, digest.hexdigest()[:24]
@@ -661,7 +668,7 @@ def render_documents(args: argparse.Namespace) -> dict[str, Any]:
     old_manifest: dict[str, Any] = {}
     if manifest_path.is_file():
         try:
-            old_manifest = json.loads(manifest_path.read_text())
+            old_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             old_manifest = {}
     old_by_key = {

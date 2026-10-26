@@ -34,7 +34,14 @@ import sys
 import time
 import zipfile
 import xml.etree.ElementTree as ET
-from typing import NoReturn
+from typing import Any, NoReturn, cast
+
+# Windows 控制台默认编码可能不是 UTF-8；命令行输出统一为 UTF-8。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        cast(Any, _stream).reconfigure(encoding="utf-8")
+    except (AttributeError, OSError):
+        pass
 
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 XML_NS = "http://www.w3.org/XML/1998/namespace"

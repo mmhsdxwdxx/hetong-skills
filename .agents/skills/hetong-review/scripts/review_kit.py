@@ -15,11 +15,19 @@ import zipfile
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
+from typing import Any, cast
 from xml.etree import ElementTree as ET
 
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 NS = {"w": W}
 VERSION = 1
+
+# Windows 控制台默认编码可能不是 UTF-8；命令行输出统一为 UTF-8。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        cast(Any, _stream).reconfigure(encoding="utf-8")
+    except (AttributeError, OSError):
+        pass
 
 
 def sha256(path: Path) -> str:
@@ -37,7 +45,7 @@ def write_data(data: object, output: Path | None, fmt: str = "json") -> None:
         text = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
     if output:
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(text)
+        output.write_text(text, encoding="utf-8")
     else:
         print(text, end="")
 
@@ -177,7 +185,7 @@ def command_fingerprint(args: argparse.Namespace) -> int:
 
 
 def command_readonly_check(args: argparse.Namespace) -> int:
-    before = json.loads(args.manifest.read_text())
+    before = json.loads(args.manifest.read_text(encoding="utf-8"))
     old = {entry["path"]: entry for entry in before.get("files", [])}
     paths = [str(p.expanduser().resolve()) for p in (args.files or [Path(x) for x in old])]
     protect_inputs(args.output, [args.manifest, *(Path(name) for name in paths)])
@@ -227,7 +235,7 @@ def number_ledger(files: list[Path]) -> dict:
     records = []
     for file in files:
         path = file.expanduser().resolve()
-        text = path.read_text(errors="replace")
+        text = path.read_text(encoding="utf-8", errors="replace")
         for number, line in enumerate(text.splitlines(), 1):
             reasons = []
             if DIGIT.search(line):
@@ -350,7 +358,7 @@ def command_sum(args: argparse.Namespace) -> int:
 
 def command_tax_check(args: argparse.Namespace) -> int:
     protect_inputs(args.output, [args.ledger])
-    data = json.loads(args.ledger.read_text())
+    data = json.loads(args.ledger.read_text(encoding="utf-8"))
     source_items = data.get("items")
     if not isinstance(source_items, list) or not source_items:
         raise ValueError("价税台账必须含非空 items 数组")
@@ -516,7 +524,7 @@ def amount_variants(raw: object) -> set[str]:
 
 
 def check_tax_summary(path: Path, text: str) -> tuple[list[str], dict]:
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     totals = data.get("totals", {})
     errors = []
     requirements = {
@@ -547,7 +555,7 @@ def check_tax_summary(path: Path, text: str) -> tuple[list[str], dict]:
 def command_check_report(args: argparse.Namespace) -> int:
     protected = [args.file, args.tax_check] if args.tax_check else [args.file]
     protect_inputs(args.output, protected)
-    text = args.file.read_text(errors="replace")
+    text = args.file.read_text(encoding="utf-8", errors="replace")
     errors, warnings = [], []
     for heading in ("结论摘要", "审核边界", "详细审核发现", "法律依据与核验记录", "覆盖矩阵"):
         if not re.search(rf"^##+\s+.*{re.escape(heading)}", text, re.M):
@@ -597,7 +605,7 @@ def suggested_text(block: str) -> str:
 
 
 def check_clause_anchors(path: Path, blocks: dict[str, str]) -> tuple[list[str], list[dict]]:
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     items = data.get("items")
     if not isinstance(items, list) or not items:
         raise ValueError("锚点文件必须含非空 items 数组")
@@ -632,7 +640,7 @@ def check_clause_anchors(path: Path, blocks: dict[str, str]) -> tuple[list[str],
 def command_check_clauses(args: argparse.Namespace) -> int:
     protected = [args.file, args.anchors] if args.anchors else [args.file]
     protect_inputs(args.output, protected)
-    text = args.file.read_text(errors="replace")
+    text = args.file.read_text(encoding="utf-8", errors="replace")
     errors, warnings = [], []
     blocks, duplicates = parse_id_blocks(text, "C")
     for heading in ("确认方案一致性", "逐句反查"):
@@ -691,8 +699,8 @@ def extract_quote_segments(block: str) -> tuple[list[str], bool]:
 
 def command_verify_quotes(args: argparse.Namespace) -> int:
     protect_inputs(args.output, [args.report, *args.sources])
-    sources = {str(p.expanduser().resolve()): p.read_text(errors="replace").replace("\r\n", "\n").replace("\r", "\n") for p in args.sources}
-    report = args.report.read_text(errors="replace").replace("\r\n", "\n").replace("\r", "\n")
+    sources = {str(p.expanduser().resolve()): p.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n") for p in args.sources}
+    report = args.report.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
     blocks, _ = parse_id_blocks(report, "R")
     records, missing_claims, errors = [], 0, []
     for item_id, block in blocks.items():

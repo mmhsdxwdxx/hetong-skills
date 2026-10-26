@@ -21,7 +21,7 @@ import re
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 try:
     import hetong_redline as redline
@@ -29,6 +29,13 @@ except ImportError as exc:  # pragma: no cover - 入口被人为移动时的可�
     raise SystemExit(f"无法导入 hetong_redline.py：{exc}") from exc
 
 SCHEMA = "contact-word-read/1"
+
+# Windows 控制台默认编码可能不是 UTF-8；命令行输出统一为 UTF-8。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        cast(Any, _stream).reconfigure(encoding="utf-8")
+    except (AttributeError, OSError):
+        pass
 REV_TEXT_TAGS = {"ins", "del", "moveFrom", "moveTo"}
 FORMAT_TAGS = {
     "rPrChange",
@@ -2043,7 +2050,7 @@ def write_outputs(data: dict[str, Any], output_dir: Path, *, force: bool) -> dic
     temporary = Path(tempfile.mkdtemp(prefix=".word-read-", dir=output_dir))
     try:
         for name, content in targets.items():
-            (temporary / name).write_text(content)
+            (temporary / name).write_text(content, encoding="utf-8")
         # CSV 单独写，保留 Excel 对中文的兼容 BOM。
         with (temporary / "timeline.csv").open("w", newline="", encoding="utf-8-sig") as stream:
             writer = csv.writer(stream)

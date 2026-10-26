@@ -95,7 +95,7 @@ def sha(path: Path) -> str:
 def run_cli(*args: str, expect: int = 0) -> dict:
     completed = subprocess.run(
         [sys.executable, str(SCRIPT), *args],
-        capture_output=True, text=True, check=False,
+        capture_output=True, text=True, encoding="utf-8", check=False,
     )
     if completed.returncode != expect:
         raise AssertionError(
@@ -150,7 +150,7 @@ class HiddenChangeTests(unittest.TestCase):
                          "--out", str(self.root / "direct-out"), expect=1)
         self.assertEqual(result["counts"]["untracked_text_changes"], 1)
         self.assertEqual(result["severity"], "高")
-        findings = json.loads((self.root / "direct-out" / "hidden-change.json").read_text())
+        findings = json.loads((self.root / "direct-out" / "hidden-change.json").read_text(encoding="utf-8"))
         self.assertTrue(any(item["category"] == "untracked_text_change" for item in findings["findings"]))
         self.assertIn("未留痕", (self.root / "direct-out" / "hidden-change-report.md").read_text())
 
@@ -182,7 +182,7 @@ class HiddenChangeTests(unittest.TestCase):
                          "--out", str(self.root / "history-out"))
         self.assertEqual(result["counts"]["untracked_text_changes"], 0)
         self.assertEqual(result["counts"]["history_removed"], 2)
-        findings = json.loads((self.root / "history-out" / "hidden-change.json").read_text())
+        findings = json.loads((self.root / "history-out" / "hidden-change.json").read_text(encoding="utf-8"))
         self.assertTrue(any(item["category"] == "review_history_removed" for item in findings["findings"]))
 
     def test_hidden_text_and_media_changes(self) -> None:
@@ -207,7 +207,7 @@ class HiddenChangeTests(unittest.TestCase):
         self.assertEqual(result["counts"]["untracked_text_changes"], 0)
         self.assertEqual(result["counts"]["hidden_text_changes"], 1)
         self.assertEqual(result["counts"]["media_changes"], 1)
-        findings = json.loads((self.root / "hidden-media-out" / "hidden-change.json").read_text())
+        findings = json.loads((self.root / "hidden-media-out" / "hidden-change.json").read_text(encoding="utf-8"))
         categories = {item["category"] for item in findings["findings"]}
         self.assertIn("hidden_text_change", categories)
         self.assertIn("non_text_media_change", categories)
@@ -216,7 +216,7 @@ class HiddenChangeTests(unittest.TestCase):
         before, after = self.pair("low-sim", paragraph("完全不同的甲合同内容。"), paragraph("无关的乙合同内容，另有条款。"))
         _result = run_cli("compare", "--before", str(before), "--after", str(after),
                           "--out", str(self.root / "low-sim-out"), expect=1)
-        findings = json.loads((self.root / "low-sim-out" / "hidden-change.json").read_text())
+        findings = json.loads((self.root / "low-sim-out" / "hidden-change.json").read_text(encoding="utf-8"))
         self.assertTrue(any(item["category"] == "low_similarity" for item in findings["findings"]))
 
     def test_comments_removed_is_flagged(self) -> None:
@@ -232,7 +232,7 @@ class HiddenChangeTests(unittest.TestCase):
                          "--out", str(self.root / "comments-out"))
         self.assertEqual(result["counts"]["untracked_text_changes"], 0)
         self.assertEqual(result["counts"]["comments_removed"], 1)
-        findings = json.loads((self.root / "comments-out" / "hidden-change.json").read_text())
+        findings = json.loads((self.root / "comments-out" / "hidden-change.json").read_text(encoding="utf-8"))
         self.assertTrue(any(item["category"] == "comments_removed" for item in findings["findings"]))
 
     def test_force_protection(self) -> None:

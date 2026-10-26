@@ -62,7 +62,7 @@ def run_cli(*arguments: str | Path, expect: int = 0) -> dict:
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
     completed = subprocess.run(
         [sys.executable, str(KIT), *[str(item) for item in arguments]],
-        capture_output=True, text=True, check=False, env=environment,
+        capture_output=True, text=True, encoding="utf-8", check=False, env=environment,
     )
     if completed.returncode != expect:
         raise AssertionError(
@@ -283,7 +283,7 @@ class PptxEditTests(OfficeFixture):
             "operations": [{"id": f"O-{index:03d}", **operation} for index, operation in enumerate(operations, 1)],
         }
         path = self.root / "edits" / f"{name}-plan.json"
-        path.write_text(json.dumps(plan, ensure_ascii=False, indent=2) + "\n")
+        path.write_text(json.dumps(plan, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         return path, output
 
     def standard_operations(self) -> list[dict]:
@@ -374,19 +374,19 @@ class PptxEditTests(OfficeFixture):
 
     def test_sha_mismatch_and_in_place_rejected(self) -> None:
         plan, _ = self.make_plan("sha", self.standard_operations())
-        data = json.loads(plan.read_text())
+        data = json.loads(plan.read_text(encoding="utf-8"))
         data["source_sha256"] = "0" * 64
         bad = self.root / "edits" / "sha-bad.json"
-        bad.write_text(json.dumps(data, ensure_ascii=False))
+        bad.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
         failed = run_cli("pptx", "apply", bad, "--dry-run", expect=2)
         self.assertIn("哈希", failed["error"])
 
         plan, _ = self.make_plan("in-place", self.standard_operations(), output_name="../虚构审阅汇报.pptx")
         # 实际解析后仍等于源文件时也必须拒绝
-        data = json.loads(plan.read_text())
+        data = json.loads(plan.read_text(encoding="utf-8"))
         data["output"] = str(self.pptx)
         bad = self.root / "edits" / "in-place-bad.json"
-        bad.write_text(json.dumps(data, ensure_ascii=False))
+        bad.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
         failed = run_cli("pptx", "apply", bad, "--dry-run", expect=2)
         self.assertIn("不得等于源文件", failed["error"])
 

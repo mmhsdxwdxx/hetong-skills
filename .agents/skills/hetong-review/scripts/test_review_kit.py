@@ -15,7 +15,7 @@ def run_cli(*args, expected=0):
     result = subprocess.run(
         [sys.executable, str(SCRIPT), *map(str, args)],
         capture_output=True,
-        text=True,
+        text=True, encoding="utf-8",
     )
     if result.returncode != expected:
         raise AssertionError(f"exit={result.returncode}, expected={expected}\nstdout={result.stdout}\nstderr={result.stderr}")
@@ -57,7 +57,7 @@ class ReviewKitTest(unittest.TestCase):
                 archive.writestr("word/embeddings/object.bin", b"fake")
             manifest = Path(directory) / "manifest.json"
             run_cli("fingerprint", path, "-o", manifest)
-            data = json.loads(manifest.read_text())
+            data = json.loads(manifest.read_text(encoding="utf-8"))
             inventory = data["files"][0]["docx_inventory"]
             self.assertEqual(inventory["counts"]["insertions"], 1)
             self.assertEqual(inventory["counts"]["deletions"], 1)
@@ -91,13 +91,13 @@ class ReviewKitTest(unittest.TestCase):
             report.write_text(
                 "### R-001\n- **原文或缺口**：\n  > 金额为100元。\n- **依据**：合同原文\n\n"
                 "### R-002\n- **原文或缺口**：经核查全文缺失通知条款。\n"
-            )
+            , encoding="utf-8")
             passed = run_cli("verify-quotes", report, source)
             data = json.loads(passed.stdout)
             self.assertTrue(data["passed"])
             self.assertEqual(data["quote_count"], 1)
             self.assertEqual(data["missing_clause_claims"], 1)
-            report.write_text(report.read_text().replace("100元", "1000元"))
+            report.write_text(report.read_text(encoding="utf-8").replace("100元", "1000元"))
             failed = run_cli("verify-quotes", report, source, expected=1)
             self.assertIn("逐字引文", failed.stdout)
 
@@ -126,29 +126,29 @@ class ReviewKitTest(unittest.TestCase):
                     {"id": "安装", "net": "10000", "rate": "6%", "tax": "600", "gross": "10600"},
                 ],
                 "stated_total": "123000",
-            }, ensure_ascii=False))
+            }, ensure_ascii=False), encoding="utf-8")
             run_cli("tax-check", ledger, "-o", checked)
-            result = json.loads(checked.read_text())
+            result = json.loads(checked.read_text(encoding="utf-8"))
             self.assertEqual(result["totals"], {"net": "110000.00", "tax": "13600.00", "gross": "123600.00"})
             self.assertEqual(result["difference_gross_minus_stated"], "600.00")
             self.assertTrue(result["items_match_stated"])
-            ledger_data = json.loads(ledger.read_text())
+            ledger_data = json.loads(ledger.read_text(encoding="utf-8"))
             ledger_data["items"][1]["tax"] = "601"
-            ledger.write_text(json.dumps(ledger_data, ensure_ascii=False))
+            ledger.write_text(json.dumps(ledger_data, ensure_ascii=False), encoding="utf-8")
             discrepancy = json.loads(run_cli("tax-check", ledger).stdout)
             self.assertTrue(discrepancy["passed"])
             self.assertFalse(discrepancy["items_match_stated"])
             self.assertEqual(len(discrepancy["discrepancies"]), 1)
-            ledger.write_text(json.dumps({**ledger_data, "items": ledger_data["items"][:1] + [{**ledger_data["items"][1], "tax": "600"}]}, ensure_ascii=False))
+            ledger.write_text(json.dumps({**ledger_data, "items": ledger_data["items"][:1] + [{**ledger_data["items"][1], "tax": "600"}]}, ensure_ascii=False), encoding="utf-8")
             report = directory / "report.md"
-            text = (ROOT / "assets" / "review-report-template.md").read_text()
+            text = (ROOT / "assets" / "review-report-template.md").read_text(encoding="utf-8")
             text = text.replace(
                 "- **风险等级 / 处置**：[S1阻断/S2重大/S3一般/S4建议] / [签前必改等]",
                 "- **风险等级 / 处置**：S2重大 / 签前必改",
             )
             text = text.replace("| S2 重大 | [数量] | [ID 列表或“—”] |", "| S2 重大 | 1 | R-001 |")
             text = text.replace("## 二、审核边界与材料清单", "价税合计：不含税 110,000.00 元＋税额 13,600.00 元＝含税 123,600.00 元。\n\n## 二、审核边界与材料清单")
-            report.write_text(text)
+            report.write_text(text, encoding="utf-8")
             run_cli("check-report", report, "--tax-check", checked)
             report.write_text(text.replace("税额 13,600.00 元", "税额待核"))
             failed = run_cli("check-report", report, "--tax-check", checked, expected=1)
@@ -157,13 +157,13 @@ class ReviewKitTest(unittest.TestCase):
     def test_summary_count_mismatch_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "report.md"
-            text = (ROOT / "assets" / "review-report-template.md").read_text()
+            text = (ROOT / "assets" / "review-report-template.md").read_text(encoding="utf-8")
             text = text.replace(
                 "- **风险等级 / 处置**：[S1阻断/S2重大/S3一般/S4建议] / [签前必改等]",
                 "- **风险等级 / 处置**：S2重大 / 签前必改",
             )
             text = text.replace("| S2 重大 | [数量] | [ID 列表或“—”] |", "| S2 重大 | 0 | R-001 |")
-            path.write_text(text)
+            path.write_text(text, encoding="utf-8")
             failed = run_cli("check-report", path, expected=1)
             result = json.loads(failed.stdout)
             self.assertEqual(result["level_counts"]["S2"], 1)
@@ -179,13 +179,13 @@ class ReviewKitTest(unittest.TestCase):
                 "- **待确认变量**：无\n"
                 "- **联动修改**：无\n"
                 "- **法律核验**：纯商业建议，无待核法律命题\n"
-            )
+            , encoding="utf-8")
             failed = run_cli("check-clauses", path, "--final", expected=1)
             self.assertIn("确认方案一致性", failed.stdout)
-            path.write_text(path.read_text() + "\n## 四、确认方案一致性表\n\n| C-ID | 确认方案原句 | 正文逐字对应 | 状态 | 语义差异与处置 |\n|---|---|---|---|---|\n| C-001 | 全部 | 全文 | 照录 | 无 |\n")
+            path.write_text(path.read_text(encoding="utf-8") + "\n## 四、确认方案一致性表\n\n| C-ID | 确认方案原句 | 正文逐字对应 | 状态 | 语义差异与处置 |\n|---|---|---|---|---|\n| C-001 | 全部 | 全文 | 照录 | 无 |\n")
             failed = run_cli("check-clauses", path, "--final", expected=1)
             self.assertIn("逐句反查", failed.stdout)
-            path.write_text(path.read_text() + "\n### 逐句反查记录\n\n| C-ID／款项 | 草案语义单元 | 对应确认原句 | 新增/收窄/扩大检查 | 处置 |\n|---|---|---|---|---|\n| C-001 | 全部 | 全部 | 无 | 保留 |\n")
+            path.write_text(path.read_text(encoding="utf-8") + "\n### 逐句反查记录\n\n| C-ID／款项 | 草案语义单元 | 对应确认原句 | 新增/收窄/扩大检查 | 处置 |\n|---|---|---|---|---|\n| C-001 | 全部 | 全部 | 无 | 保留 |\n")
             run_cli("check-clauses", path, "--final")
 
     def test_clause_anchor_gate_checks_suggested_text(self):
@@ -200,13 +200,13 @@ class ReviewKitTest(unittest.TestCase):
                 "- **待确认变量**：无\n"
                 "- **联动修改**：无\n"
                 "- **法律核验**：纯商业建议，无待核法律命题\n"
-            )
+            , encoding="utf-8")
             anchors.write_text(json.dumps({"items": [{"c_id": "C-001", "required": ["完整提交", "5 个工作日"], "forbidden": ["附带损失"]}]}, ensure_ascii=False))
             failed = run_cli("check-clauses", path, "--anchors", anchors, expected=1)
             self.assertIn("缺少确认锚点：完整提交", failed.stdout)
-            path.write_text(path.read_text().replace("乙方提交", "乙方完整提交"))
+            path.write_text(path.read_text(encoding="utf-8").replace("乙方提交", "乙方完整提交"))
             run_cli("check-clauses", path, "--anchors", anchors)
-            path.write_text(path.read_text().replace("。", "，并排除附带损失。"))
+            path.write_text(path.read_text(encoding="utf-8").replace("。", "，并排除附带损失。"))
             failed = run_cli("check-clauses", path, "--anchors", anchors, expected=1)
             self.assertIn("禁止锚点：附带损失", failed.stdout)
 

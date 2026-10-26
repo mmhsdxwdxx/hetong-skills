@@ -25,7 +25,7 @@ import tempfile
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 CRAFT_SCRIPTS = SCRIPT_DIR.parents[1] / "hetong-craft" / "scripts"
@@ -47,6 +47,13 @@ except ImportError as exc:  # pragma: no cover
     raise SystemExit(f"无法加载 word_reader.py：{exc}") from exc
 
 SCHEMA = "contact-hidden-change/1"
+
+# Windows 控制台默认编码可能不是 UTF-8；命令行输出统一为 UTF-8。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        cast(Any, _stream).reconfigure(encoding="utf-8")
+    except (AttributeError, OSError):
+        pass
 DEFAULT_SIMILARITY = 0.55
 MEDIA_PREFIXES = ("word/media/", "word/embeddings/", "word/charts/")
 
@@ -541,9 +548,9 @@ def write_outputs(result: dict[str, Any], output_dir: Path, *, force: bool) -> d
     temporary = Path(tempfile.mkdtemp(prefix=".hidden-change-", dir=output_dir))
     try:
         (temporary / "hidden-change.json").write_text(
-            json.dumps(result, ensure_ascii=False, indent=2) + "\n"
+            json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
-        (temporary / "hidden-change-report.md").write_text(render_markdown(result))
+        (temporary / "hidden-change-report.md").write_text(render_markdown(result), encoding="utf-8")
         with (temporary / "content-diff.csv").open("w", newline="", encoding="utf-8-sig") as stream:
             writer = csv.writer(stream)
             writer.writerow(["side", "kind", "location", "clause", "before", "after"])
