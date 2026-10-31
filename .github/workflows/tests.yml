@@ -83,7 +83,9 @@ jobs:
           }
 
   windows-office:
-    runs-on: windows-latest
+    # Actual Windows 11 host; x64 Python/LibreOffice run under its x64 compatibility layer.
+    # The separate windows job retains native x64 core-script coverage.
+    runs-on: windows-11-arm
     timeout-minutes: 25
     env:
       PYTHONUTF8: "1"
@@ -117,6 +119,7 @@ jobs:
       - name: Windows PowerShell 5.1 setup, Word redline and actual rendering
         shell: pwsh
         run: |
+          Get-ComputerInfo -Property OsName,OsVersion,OsArchitecture | Format-List
           Get-Item "$env:WINDIR\Fonts\simsun.ttc", "$env:WINDIR\Fonts\simhei.ttf" -ErrorAction SilentlyContinue | Select-Object Name,Length
           $python = (Get-Command python).Source
           $venv = Join-Path $env:RUNNER_TEMP 'hetong runtime\venv'
