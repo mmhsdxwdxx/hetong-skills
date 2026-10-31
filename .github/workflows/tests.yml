@@ -92,6 +92,45 @@ jobs:
       PYTHONIOENCODING: "utf-8"
     steps:
       - uses: actions/checkout@v4
+      - name: Install Windows Simplified Chinese supplemental fonts if missing
+        timeout-minutes: 5
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "$env:WINDIR\Fonts\simhei.ttf")) {
+            # GitHub's disposable image disables Windows Update in Configure-System.ps1.
+            # Enable only this CI VM's FOD download path; never do this in user setup scripts.
+            $wu = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+            Get-ItemProperty -Path $wu -ErrorAction SilentlyContinue | Select-Object DoNotConnectToWindowsUpdateInternetLocations,DisableWindowsUpdateAccess
+            New-Item -Path $wu -Force | Out-Null
+            Set-ItemProperty -Path $wu -Name DoNotConnectToWindowsUpdateInternetLocations -Value 0
+            Set-ItemProperty -Path $wu -Name DisableWindowsUpdateAccess -Value 0
+            $au = Join-Path $wu 'AU'
+            New-Item -Path $au -Force | Out-Null
+            Set-ItemProperty -Path $au -Name UseWUServer -Value 0
+            Set-ItemProperty -Path $au -Name NoAutoUpdate -Value 0
+            Set-ItemProperty -Path $au -Name AUOptions -Value 2
+            Set-Service -Name wuauserv -StartupType Manual
+            Restart-Service -Name wuauserv -ErrorAction Stop
+            Start-Service -Name BITS
+            $fontCapability = 'Language.Fonts.Hans~~~und-HANS~0.0.1.0'
+            Get-WindowsCapability -Online -Name $fontCapability | Format-Table Name,State
+            $diagnostics = Join-Path $env:RUNNER_TEMP 'hetong-win11-fonts'
+            New-Item -ItemType Directory -Force -Path $diagnostics | Out-Null
+            Get-ChildItem "$env:WINDIR\WinSxS" -Filter simhei.ttf -Recurse -ErrorAction SilentlyContinue | Select-Object FullName | Out-File (Join-Path $diagnostics 'font-candidates.txt')
+            $dismLog = Join-Path $diagnostics 'dism.log'
+            $dism = Start-Process dism.exe -ArgumentList @('/Online','/English','/Add-Capability',"/CapabilityName:$fontCapability",'/NoRestart',"/LogPath:$dismLog",'/LogLevel:4') -PassThru -RedirectStandardOutput (Join-Path $diagnostics 'stdout.txt') -RedirectStandardError (Join-Path $diagnostics 'stderr.txt')
+            if (-not $dism.WaitForExit(180000)) {
+              $dism.Kill()
+              $dism.WaitForExit()
+              Get-Content $dismLog -Tail 80 -ErrorAction SilentlyContinue
+              throw 'Windows font FOD timed out after 180 seconds; diagnostic logs retained'
+            }
+            if ($dism.ExitCode -notin @(0,3010)) {
+              Get-Content $dismLog -Tail 80 -ErrorAction SilentlyContinue
+              throw "DISM font installation failed: $($dism.ExitCode)"
+            }
+          }
+          if (-not (Test-Path "$env:WINDIR\Fonts\simhei.ttf")) { throw 'Windows SimHei font was not installed' }
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -107,29 +146,6 @@ jobs:
           }
           $installed = Start-Process msiexec.exe -ArgumentList @('/i', "`"$msi`"", '/qn', '/norestart', 'ALLUSERS=1') -Wait -PassThru
           if ($installed.ExitCode -notin @(0,3010)) { throw "MSI install failed: $($installed.ExitCode)" }
-      - name: Install Windows Simplified Chinese supplemental fonts if missing
-        timeout-minutes: 8
-        shell: pwsh
-        run: |
-          if (-not (Test-Path "$env:WINDIR\Fonts\simhei.ttf")) {
-            # GitHub's disposable image disables Windows Update in Configure-System.ps1.
-            # Enable only this CI VM's FOD download path; never do this in user setup scripts.
-            $wu = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
-            Get-ItemProperty -Path $wu -ErrorAction SilentlyContinue | Select-Object DoNotConnectToWindowsUpdateInternetLocations,DisableWindowsUpdateAccess
-            New-Item -Path $wu -Force | Out-Null
-            Set-ItemProperty -Path $wu -Name DoNotConnectToWindowsUpdateInternetLocations -Value 0
-            Set-ItemProperty -Path $wu -Name DisableWindowsUpdateAccess -Value 0
-            $au = Join-Path $wu 'AU'
-            New-Item -Path $au -Force | Out-Null
-            Set-ItemProperty -Path $au -Name UseWUServer -Value 0
-            Set-Service -Name wuauserv -StartupType Manual
-            Start-Service -Name wuauserv
-            Start-Service -Name BITS
-            $fontCapability = 'Language.Fonts.Hans~~~und-HANS~0.0.1.0'
-            Get-WindowsCapability -Online -Name $fontCapability | Format-Table Name,State
-            Add-WindowsCapability -Online -Name $fontCapability -ErrorAction Stop | Format-Table
-          }
-          if (-not (Test-Path "$env:WINDIR\Fonts\simhei.ttf")) { throw 'Windows SimHei font was not installed' }
       - name: Windows PowerShell 5.1 setup, Word redline and actual rendering
         shell: pwsh
         run: |
