@@ -108,9 +108,23 @@ jobs:
           $installed = Start-Process msiexec.exe -ArgumentList @('/i', "`"$msi`"", '/qn', '/norestart', 'ALLUSERS=1') -Wait -PassThru
           if ($installed.ExitCode -notin @(0,3010)) { throw "MSI install failed: $($installed.ExitCode)" }
       - name: Install Windows Simplified Chinese supplemental fonts if missing
+        timeout-minutes: 8
         shell: pwsh
         run: |
           if (-not (Test-Path "$env:WINDIR\Fonts\simhei.ttf")) {
+            # GitHub's disposable image disables Windows Update in Configure-System.ps1.
+            # Enable only this CI VM's FOD download path; never do this in user setup scripts.
+            $wu = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+            Get-ItemProperty -Path $wu -ErrorAction SilentlyContinue | Select-Object DoNotConnectToWindowsUpdateInternetLocations,DisableWindowsUpdateAccess
+            New-Item -Path $wu -Force | Out-Null
+            Set-ItemProperty -Path $wu -Name DoNotConnectToWindowsUpdateInternetLocations -Value 0
+            Set-ItemProperty -Path $wu -Name DisableWindowsUpdateAccess -Value 0
+            $au = Join-Path $wu 'AU'
+            New-Item -Path $au -Force | Out-Null
+            Set-ItemProperty -Path $au -Name UseWUServer -Value 0
+            Set-Service -Name wuauserv -StartupType Manual
+            Start-Service -Name wuauserv
+            Start-Service -Name BITS
             $fontCapability = 'Language.Fonts.Hans~~~und-HANS~0.0.1.0'
             Get-WindowsCapability -Online -Name $fontCapability | Format-Table Name,State
             Add-WindowsCapability -Online -Name $fontCapability -ErrorAction Stop | Format-Table
