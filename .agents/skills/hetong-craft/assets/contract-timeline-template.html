@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>虚构采购情景 · 履约时间轴</title>
+<style>
+@page { size:A4 portrait; margin:20mm 25.4mm; }
+* { box-sizing:border-box; }
+html { font-size:10.5pt; }
+body { margin:0; background:#e9edf1; color:#202d3b; font-family:"Songti SC","SimSun","Noto Serif CJK SC",serif; font-size:10.5pt; line-height:1.45; }
+.sheet { width:210mm; min-height:297mm; margin:20px auto; padding:20mm 25.4mm; background:white; box-shadow:0 4px 24px #23374a12; }
+h1 { margin:0 0 3mm; font-size:15pt; }
+h2 { margin:5mm 0 2mm; font-size:11pt; break-after:avoid; }
+.note { margin:0 0 3mm; font-size:9pt; color:#52606e; break-after:avoid; }
+table { width:159.2mm; table-layout:fixed; border-collapse:collapse; border:0.6pt solid #536579; }
+col.date-col { width:22mm; }
+col.cash-col { width:52mm; }
+col.delivery-col { width:50mm; }
+col.invoice-col { width:35.2mm; }
+th,td { border:0.45pt solid #c7ced6; padding:1.8mm 2mm; vertical-align:top; text-align:left; overflow-wrap:break-word; word-break:normal; }
+th { background:#edf2f6; color:#263e53; font-size:10.5pt; font-weight:600; padding-top:2mm; padding-bottom:2mm; }
+.point { margin:0; line-height:1.45; }
+.point+.point { margin-top:1mm; }
+strong { font-weight:600; }
+.date { background:#f7f9fb; white-space:nowrap; font-variant-numeric:tabular-nums; text-align:center; }
+.date span { display:block; font-size:9.5pt; color:#6c7a88; }
+.date strong { display:block; font-size:11pt; color:#2a4359; }
+.risk td { background:#fffbf3; }
+.risk .date { background:#fff4df; }
+.caption { margin:3mm 0 0; font-size:9pt; color:#52606e; }
+.caption p { margin:0; }
+.caption p+p { margin-top:1.4mm; }
+thead { display:table-header-group; }
+tr { break-inside:avoid; page-break-inside:avoid; }
+@media screen and (max-width:820px) { body { overflow-x:auto; } .sheet { margin:12px; } }
+@media print { html,body { background:white; } .sheet { width:159.2mm; min-height:0; margin:0; padding:0; box-shadow:none; } * { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+</style>
+</head>
+<body><main class="sheet">
+<h1>虚构采购情景：履约时间轴</h1>
+<p class="note">全表金额单位：万元人民币。所有日期、金额及条件仅为虚构演示，不是合同范本或交易默认值。纵向表示事件先后，行距不代表天数。</p>
+<h2>正常交付情景</h2>
+<p class="note">假设含税总价1,000，预付款200；第一批600，抵扣200后实付400；第二批实付400。“情景累计已付”不代表现实付款记录。本情景未触发待退；资金占用与已付不相加。</p>
+<table aria-label="正常交付情景履约时间轴">
+<colgroup><col class="date-col"><col class="cash-col"><col class="delivery-col"><col class="invoice-col"></colgroup>
+<thead><tr><th scope="col">日期</th><th scope="col">我方现金流及付款义务</th><th scope="col">交付与担保</th><th scope="col">发票（万元）</th></tr></thead>
+<tbody>
+<tr><td class="date"><span>2030</span><strong>04.01</strong></td><td><p class="point">正式保函核验并生效后</p><p class="point"><strong>当期应付200</strong></p><p class="point">情景累计已付 <strong>200</strong></p><p class="point">未抵扣预付款占用 <strong>200</strong></p></td><td><p class="point">尚未交付</p><p class="point">假设保函面额 <strong>200</strong></p><p class="point">实际覆盖及索赔条件另核</p></td><td><p class="point">—</p></td></tr>
+<tr><td class="date"><span>2030</span><strong>04.10</strong></td><td><p class="point">第一批验收合格后</p><p class="point"><strong>当期应付400</strong></p><p class="point">情景累计已付 <strong>600</strong></p><p class="point">预付款抵扣 <strong>200</strong></p><p class="point">转为设备占用，回款待核</p></td><td><p class="point">第一批货值 <strong>600</strong></p><p class="point">预付款余额归零</p><p class="point">是否减保须看实际约定</p></td><td><p class="point">—</p></td></tr>
+<tr><td class="date"><span>2030</span><strong>04.20</strong></td><td><p class="point">第二批验收合格后</p><p class="point"><strong>当期应付400</strong></p><p class="point">情景累计已付 <strong>1,000</strong></p><p class="point">设备占用及回款待核</p></td><td><p class="point">第二批货值 <strong>400</strong></p><p class="point">假设全部交付完成</p></td><td><p class="point">假设应于 <strong>04.30</strong> 前开票</p><p class="point">应开金额 <strong>1,000</strong></p><p class="point">实际取得及抵扣待核</p></td></tr>
+<tr class="risk"><td class="date"><span>2030</span><strong>04.25</strong></td><td><p class="point"><strong>无新增货款</strong></p><p class="point">情景累计已付仍为 <strong>1,000</strong></p><p class="point">设备占用及回款待核</p></td><td><p class="point"><strong>假设保函名义到期</strong></p><p class="point">能否覆盖开票义务另核</p></td><td><p class="point">距示例开票期限 <strong>5日</strong></p></td></tr>
+<tr><td class="date"><span>2030</span><strong>04.30</strong></td><td><p class="point"><strong>无新增货款</strong></p><p class="point">情景累计已付仍为 <strong>1,000</strong></p><p class="point">设备占用及回款待核</p></td><td><p class="point">名义到期后仍可能有合同责任</p><p class="point">银行责任另行核对</p></td><td><p class="point"><strong>假设开票期限届满</strong></p><p class="point">不据此认定已取得发票</p><p class="point">不据此认定已实际抵扣</p></td></tr>
+</tbody></table>
+<div class="caption"><p>复算：200＋400＋400＝1,000；第一批600－抵扣200＝当期付款400；04.30－04.25＝5日。时间差不证明发票损失受保函覆盖，也不证明损失已经发生。</p></div>
+<h2>解除退款分支（独立情景）</h2>
+<p class="note">仅承接04.01付款200，假设其后完全未交付、解除及退款条件均成立。不承接上表04.10之后的交付和付款；退款期限也是示例假设。</p>
+<table aria-label="解除退款分支履约时间轴">
+<colgroup><col class="date-col"><col class="cash-col"><col class="delivery-col"><col class="invoice-col"></colgroup>
+<thead><tr><th scope="col">日期</th><th scope="col">我方现金流及付款义务</th><th scope="col">交付与担保</th><th scope="col">发票（万元）</th></tr></thead>
+<tbody>
+<tr><td class="date"><span>2030</span><strong>04.20</strong></td><td><p class="point">情景累计已付 <strong>200</strong></p><p class="point"><strong>待退本金200（假设已到期）</strong></p><p class="point">未收回预付款占用 <strong>200</strong></p><p class="point">违约金另行判断</p></td><td><p class="point">假设完全未交付</p><p class="point">索赔须核实际保函及交单条件</p><p class="point">不能直接当作已获赔200</p></td><td><p class="point">退款涉及的票据处理另核</p></td></tr>
+<tr><td class="date"><span>2030</span><strong>04.22</strong></td><td><p class="point">假设退款到账 <strong>200</strong></p><p class="point">情景累计已付仍为 <strong>200</strong></p><p class="point">待退本金 <strong>0</strong></p><p class="point">累计净现金支出 <strong>0</strong></p><p class="point">该笔预付款占用归零</p></td><td><p class="point">同一本金不得再重复收回</p><p class="point">剩余责任另行判断</p></td><td><p class="point">票据处理完成情况待核</p></td></tr>
+</tbody></table>
+<div class="caption"><p>本文件自包含，无外链字体、脚本或图像。打印：A4纵向，总宽159.2mm；四列22／52／50／35.2mm；正文10.5pt，每个要点独立成段。</p></div>
+</main></body></html>

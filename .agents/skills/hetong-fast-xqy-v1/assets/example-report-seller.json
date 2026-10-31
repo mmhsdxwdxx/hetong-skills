@@ -1,0 +1,20 @@
+{
+  "schema": "hetong-fast-xqy-v1/report-1",
+  "title": "虚构设备销售合同 乙方快审样张",
+  "review_date": "2000-01-01",
+  "perspective": "乙方（销售方，纯虚构示例）",
+  "stance": {"party": "乙方", "role": "seller"},
+  "basics": {"product": "星河2T（虚构）", "quantity": "数量一致，仅作版式演示。", "price": "未给出真实交易价格。", "delivery": "按具体订单及约定节点核对。", "conclusion": "本样张用于展示乙方立场和固定条款重点，不是合同审核结论。"},
+  "sections": [
+    {"id": 2, "status": "待核实", "location": "虚构开票条款", "observation": "应区分发票信息差错与法定开票义务。", "recommendation": "核对B10，不将民事责任安排扩大成允许不开票。"},
+    {"id": 3, "status": "部分具备", "location": "虚构保函条款", "observation": "开函期短于本方固定条款口径，且设未开即解除。", "recommendation": "应按乙方立场协商开函期限、不可归责迟延及解除条件，另核生效和减额。", "fixed_clauses": [{"id": "B07", "status": "冲突", "analysis": "本方固定条款对开函期限和不可归责迟延设有保护；本例更短期限与立即解除安排加重我方义务。应重点协商，不照搬甲方的10日未开即解除建议。"}]},
+    {"id": 4, "status": "部分具备", "location": "虚构资料条款", "observation": "要求在验货前提交尚未生成的全部SN。", "recommendation": "按B08区分前置资料和验货时、验货后义务，不删除合法核验所需资料。"},
+    {"id": 5, "status": "部分具备", "location": "虚构验收条款", "observation": "性能测试没有可执行的结束条件。", "recommendation": "按B06明确验收、合理复测及逐批结算，不能使我方收款无限悬置。"},
+    {"id": 6, "status": "部分具备", "location": "虚构违约条款", "observation": "已写总体上限，但银行已付补偿可能被重复主张。", "recommendation": "将累计补偿、专项限额及银行已付款纳入统一核算；本金返还独立处理。", "fixed_clauses": [{"id": "B04", "status": "部分符合", "analysis": "本方固定条款要求总体违约补偿统一累计，不能因分批或银行赔付而重复突破；本例未衔接，应补齐。该上限不用于截留应返还本金，法定不得限责事项另行核验。"}]},
+    {"id": 7, "status": "待核实", "location": "虚构管制条款", "observation": "没有区分普通经营困难与特定合法交付障碍。", "recommendation": "按B05核对直接影响、合理措施、受影响未交付部分取消和对应退款，不一概删除本方保护。"},
+    {"id": 8, "status": "部分具备", "location": "虚构廉洁条款", "observation": "可能要求我方承担对方人员自行违法责任。", "recommendation": "按B02保留合法责任界限，不免除我方自身依法应承担的责任。"}
+  ],
+  "extras": [],
+  "verification": {"coverage": "纯虚构的乙方报告样张。", "limitations": "未审核真实合同，未执行法律检索。", "pending": "所有实质方案和参数需在真实任务中核对，不构成交易合意。", "sources": []},
+  "input_files": []
+}

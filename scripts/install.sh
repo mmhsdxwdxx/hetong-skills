@@ -21,4 +21,5 @@ fi
 mkdir -p "$TARGET/.agents/skills"
 rsync -a "$ROOT/.agents/skills/" "$TARGET/.agents/skills/"
 printf '已安装到 %s/.agents/skills/\n' "$TARGET"
-printf '请从目标项目根目录启动 Pi/Codex/DSH，并在需要时重载技能。\n'
+printf '请从目标项目根目录新开会话使用新版；本安装器不会刷新已有会话。\n'
+printf '旧 hetong-server 已撤并；如目标中仍有旧入口，请先自行备份处理，安装器不会删除它。\n'

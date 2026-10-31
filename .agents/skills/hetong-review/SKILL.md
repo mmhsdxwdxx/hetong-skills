@@ -9,7 +9,8 @@ description: |
   对比合同版本、复查风险是否真正改好，或要求“审一遍并补充/修改保护条款”，即使用户没有
   明确说“合同审核”。与 hetong-craft 配合承接其审核模式；原件写入仍须另走修订/完善流程。
   Not for 从零起草、纯语言润色、无审核需求的明确指令修订或非合同法律文书。
-compatibility: Pi Agent、Codex、DSH；复用同级 hetong-craft；辅助脚本需 Python 3.9+，核心审核与 Word 深读脚本仅使用标准库。
+metadata:
+  compatibility: Pi/PiDeck、Claude Code、Codex、DSH；复用同级 hetong-craft；辅助脚本需 Python 3.9+，核心审核与 Word 深读脚本仅使用标准库；交互以实际宿主能力和回执为准，不限定模型品牌。
 ---
 
 # 合同深度审核与保护性条款
@@ -17,18 +18,28 @@ compatibility: Pi Agent、Codex、DSH；复用同级 hetong-craft；辅助脚本
 目标不是凑出尽可能多的“问题”，而是在不改变已确认交易实质的前提下，回答：
 **合同是否可签、核心风险在哪里、依据是什么、如何形成可履行/可举证/可退出/可救济的保护机制。**
 
+新增Word批注先执行[批注触发标准](../hetong-craft/references/comment-policy.md)：固定条款仅作核对依据，已充分满足且无需改动的不新增批注；真实缺陷、需增删修订及错别字按本次授权处理。
+
+## 专用快速审核路由
+
+用户点名`hetong-fast-xqy-v1`或明确要求“xqy快审／徐启源口径快审”时，直接按
+[XQY快速审核](../hetong-fast-xqy-v1/SKILL.md)执行其八项详细报告、原稿批注副本及统一R编号；
+不继续下方通用受理、完整风险台账模板或A6的无样例报告形式。原件只读、事实复核、
+法律核验及未确认商业条件不得写成既定条款的纪律继续适用。普通审核不受此分支影响。
+
 ## 一、启动规则与权限边界
 
-1. **先加载项目规则和统一入口。** 在当前仓库及祖先目录查找并通读 `AGENTS.md`、
-   `CLAUDE.md`、README 与交易结构/红线说明；再读同级 `../hetong-craft/SKILL.md`。
+1. **先加载项目规则和统一入口。** 读取适用 `AGENTS.md` 和本次任务相关的交易结构/红线说明；
+   同级 `../hetong-craft/SKILL.md` 尚未加载时再读，不重复加载链接文件和无关项目历史。
    本技能是其审核模式的专项子流程，无需回读 `mode-review.md` 形成循环。项目规则、
    用户确认的商业实质和已锁定决策优先，不得回退。
+   真实合同在锁定原件后先执行`../hetong-craft/references/host-intake.md`的受理工具，记录阶段、处理方式和适用的类别选择；已明确的信息不重问。不要只用普通文字问卷替代已实现的选择界面。未答复时可做客观提取与核算，不猜立场、不套默认类别、不改Word。
 2. **两个阶段，另有只读专项。** 阶段 A 全文审核与诊断；阶段 B 经用户确认后形成
    保护性条款。版本对比、合同族对照和修订关闭核验始终是只读诊断，不自动进入阶段 B。
 3. **混合意图先诊断。** 只要求审核时，完成阶段 A 即停止。要求“审核并补充/修改”时，
-   先交付诊断和条款需求清单，确认处理范围、商业方案、变量及输出方式后再进入阶段 B。
-   若对象是服务器采购/销售合同，在进入 A0 前加载同级 `../hetong-server/SKILL.md`，把
-   B01—B11 作为领域对照；该 profile 不能替代本技能的 R/Q/C、法律核验和只读闸门。
+   方案未定时先交付诊断和条款需求清单，确认后进入阶段 B；已明确授权的逐项修订
+   按 [共用授权边界](../hetong-craft/references/task-authorization.md) 直接路由修订，不重复确认。
+   买卖任务需要预设条款对照时，读取`../hetong-craft/references/trade-clause-guide.md`；条款以craft为唯一真源。甲方先选择类别再按所选范围核对，乙方按B01—B11及实际适用性核对；不另加载已撤并的独立入口，不替代R/Q/C、法律核验和只读闸门。
 4. **审核默认只读。** 不改 docx/pdf/文本原件，不夹带修订。阶段 B 的独立条款建议按
    `hetong-craft` 完善模式的提案纪律执行；实际改写原件仍须确认基线和输出方式，
    切换修订/完善模式，执行基线保全、dry-run（红线用plan）、verify、重新提取和变更日志。
@@ -46,6 +57,7 @@ compatibility: Pi Agent、Codex、DSH；复用同级 hetong-craft；辅助脚本
 | 所有深度审核 | [深度审核方法](references/review-method.md)；[我方立场与谈判](references/stance-and-negotiation.md)；`../hetong-craft/references/checklist-review.md` |
 | 受理与立场不明 | [审核受理单](assets/review-intake-template.md) |
 | 交易结构、背靠背、责任分配 | `../hetong-craft/references/risk-patterns.md` |
+| 履约时间轴，付款／交付／担保／发票联动 | [合同履约时间轴规范](../hetong-craft/references/contract-timeline.md)；使用固定日期栏＋三栏正文，区分实际记录与情景、应付／已付／待退／占用，不自动增加批注或改文 |
 | 引用法律、判断效力、重大风险或专项监管 | [法律核验与结论分层](references/legal-verification.md) |
 | 出具审核报告 | [审核报告模板](assets/review-report-template.md) |
 | 版本对比、合同族差异 | [只读版本对比](references/version-diff.md)＋[差异清单模板](assets/difference-ledger-template.md) |
@@ -56,9 +68,11 @@ compatibility: Pi Agent、Codex、DSH；复用同级 hetong-craft；辅助脚本
 | 指纹、数字、引文和结构门禁 | [review_kit 使用说明](scripts/README.md)＋`scripts/review_kit.py` |
 | docx 提取或后续写入 | `../hetong-craft/references/docx-workflow.md` 及 `../hetong-craft/scripts/docx_tool.py` |
 | Word/WPS 红线稿、留痕或范围批注 | `../hetong-craft/references/docx-redline.md`；经授权另存，用 `hetong_redline.py`，不自动接受历史修订 |
+| 内容已确定且获准写入的 Word 操作 | [Word 操作委派](../hetong-craft/references/word-operation-agent.md)；默认继承主模型，内容判断和最终验收仍由主 Agent 负责；原生配色按[显示规则](../hetong-craft/references/native-review-display.md)执行 |
 | DOCX/PPTX/XLSX/PDF 结构检查、PPTX 精修与无头预览 | `../hetong-craft/references/office-workflow.md` 及 `../hetong-craft/scripts/office_kit.py`；只读检查不授予正文修改权 |
 | 含修订/批注 DOCX 的原文、接受视图、时间线和批注线程 | `../hetong-craft/references/word-deep-read.md` 及 `../hetong-craft/scripts/word_reader.py`；只读深读，不自动接受/拒绝修订 |
-| 服务器采购/销售合同的十一项商业底线与交付/担保分析 | `../hetong-server/SKILL.md`；仅在服务器设备采购/销售场景叠加，不泛化为通用底线 |
+| 甲乙方买卖条款、类别选择及交付/担保衔接 | `../hetong-craft/references/trade-clause-guide.md`；条款以craft为准，按实际角色、标的及本次范围使用 |
+| 两份近似DOCX的未留痕改动检查 | `../hetong-craft/references/hidden-change-review.md`和`../hetong-craft/scripts/hidden_change.py`；仍需区分差异与主观恶意 |
 | Word 成品审阅结构审计（修订/批注历史保留、锚点、包结构） | `../hetong-craft/scripts/audit_docx_review.py`；只读，需 `--before` 才有新增内容基线 |
 
 以本技能目录为基准把相对路径解析成绝对路径。引用 `hetong-craft` 的清单和工具是单一
@@ -68,7 +82,9 @@ compatibility: Pi Agent、Codex、DSH；复用同级 hetong-craft；辅助脚本
 
 ### A0. 受理与审核计划
 
-用 `todo` 建立与下列阶段一致的计划。先从用户和项目材料提取已有答案，再一次集中追问
+按任务规模安排审核步骤，长任务使用宿主现有计划能力；简单局部审查不强制建计划。
+数字与期限复算、明确问题的法源核验、附件及版本核对存在独立工作包时，按[合同任务协作](../hetong-craft/references/agent-collaboration.md)并行开展；主代理继续全文审查和跨条款判断。子代理默认继承主模型，短任务直接处理；不以分工替代全文覆盖、冷读或最终复核。
+先从用户和相关材料提取已有答案，再一次集中追问
 会改变立场、范围或权限的缺口：我方主体与真实角色、报告使用人、签前/履约/争议预审/
 版本对比/关闭核验目标、文件与合同族边界、已锁定红线、商业优先级、输出及写入权限。
 
@@ -144,7 +160,7 @@ compatibility: Pi Agent、Codex、DSH；复用同级 hetong-craft；辅助脚本
 
 每条 finding 使用跨轮稳定 R-ID，并具备：定位、逐字原文或缺口、结论状态、风险类别、
 对我方影响、依据、反方复核、修订方向和保护条款需求。缺失条款写“全文/已核材料未见”，
-不得伪造引文。用户决策另用稳定 Q-ID；发现、拍板和实施不得混为一体。
+不得伪造引文。用户决策另用稳定 Q-ID；发现、拍板和实施不得混为一体。领域 A/B 编号仅作对照，不代替 R-ID。
 
 风险词表统一为 **S1 阻断 / S2 重大 / S3 一般 / S4 建议**；签前必改、优先争取、
 确认后接受、签后关注等是处置，不是另一套等级。定级前逐条反证：

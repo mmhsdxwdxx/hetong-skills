@@ -1,0 +1,185 @@
+{
+  "schema_version": 2,
+  "catalog_id": "seller-20261030-classified",
+  "status": "active",
+  "source_sha256": "f63cb33319f13fe8203f9f2e043632afdefd48b73b4c40608c9c281905b68e2a",
+  "relations": [],
+  "library_side": "seller",
+  "library_dir": "clauses/seller",
+  "categories": [
+    "保交条款",
+    "必要条款",
+    "一般条款",
+    "其他条款",
+    "共管条款"
+  ],
+  "sources": [
+    {
+      "id": "B01",
+      "title": "预付款保函的开立银行与接受标准",
+      "category": "必要条款"
+    },
+    {
+      "id": "B02",
+      "title": "廉洁合作及责任承担",
+      "category": "必要条款"
+    },
+    {
+      "id": "B03",
+      "title": "保密违约赔偿及累计上限",
+      "category": "必要条款"
+    },
+    {
+      "id": "B04",
+      "title": "总体违约补偿累计上限与履约担保",
+      "category": "必要条款"
+    },
+    {
+      "id": "B05",
+      "title": "BIS限制导致交付障碍的特别安排",
+      "category": "必要条款"
+    },
+    {
+      "id": "B06",
+      "title": "分批交付、验收与逐批结算",
+      "category": "必要条款"
+    },
+    {
+      "id": "B07",
+      "title": "保函提供期限及未按期开函的处理",
+      "category": "必要条款"
+    },
+    {
+      "id": "B08",
+      "title": "验货前PO、SN、PI等资料义务",
+      "category": "必要条款"
+    },
+    {
+      "id": "B09",
+      "title": "保函额度拆分、逐台减额与索赔范围",
+      "category": "必要条款"
+    },
+    {
+      "id": "B10",
+      "title": "发票信息不符的赔偿责任",
+      "category": "其他条款"
+    },
+    {
+      "id": "B11",
+      "title": "保函生效与失效时间",
+      "category": "必要条款"
+    }
+  ],
+  "modules": [
+    {
+      "id": "B01",
+      "title": "预付款保函的开立银行与接受标准",
+      "category": "必要条款",
+      "source_ids": [
+        "B01"
+      ],
+      "action": "clause_example",
+      "file": "clauses/seller/必要条款.md"
+    },
+    {
+      "id": "B02",
+      "title": "廉洁合作及责任承担",
+      "category": "必要条款",
+      "source_ids": [
+        "B02"
+      ],
+      "action": "clause_example",
+      "file": "clauses/seller/必要条款.md"
+    },
+    {
+      "id": "B03",
+      "title": "保密违约赔偿及累计上限",
+      "category": "必要条款",
+      "source_ids": [
+        "B03"
+      ],
+      "action": "clause_example",
+      "file": "clauses/seller/必要条款.md"
+    },
+    {
+      "id": "B04",
+      "title": "总体违约补偿累计上限与履约担保",
+      "category": "必要条款",
+      "source_ids": [
+        "B04"
+      ],
+      "action": "clause_example",
+      "file": "clauses/seller/必要条款.md"
+    },
+    {
+      "id": "B05",
+      "title": "BIS限制导致交付障碍的特别安排",
+      "category": "必要条款",
+      "source_ids": [
+        "B05"
+      ],
+      "action": "clause_example",
+      "file": "clauses/seller/必要条款.md"
+    },
+    {
+      "id": "B06",
+      "title": "分批交付、验收与逐批结算",
+      "category": "必要条款",
+      "source_ids": [
+        "B06"
+      ],
+      "action": "clause_example",
+      "file": "clauses/seller/必要条款.md"
+    },
+    {
+      "id": "B07",
+      "title": "保函提供期限及未按期开函的处理",
+      "category": "必要条款",
+      "source_ids": [
+        "B07"
+      ],
+      "action": "clause_example",
+      "file": "clauses/seller/必要条款.md"
+    },
+    {
+      "id": "B08",
+      "title": "验货前PO、SN、PI等资料义务",
+      "category": "必要条款",
+      "source_ids": [
+        "B08"
+      ],
+      "action": "clause_example",
+      "file": "clauses/seller/必要条款.md"
+    },
+    {
+      "id": "B09",
+      "title": "保函额度拆分、逐台减额与索赔范围",
+      "category": "必要条款",
+      "source_ids": [
+        "B09"
+      ],
+      "action": "clause_example",
+      "file": "clauses/seller/必要条款.md"
+    },
+    {
+      "id": "B10",
+      "title": "发票信息不符的赔偿责任",
+      "category": "其他条款",
+      "source_ids": [
+        "B10"
+      ],
+      "action": "clause_example",
+      "file": "clauses/seller/其他条款.md"
+    },
+    {
+      "id": "B11",
+      "title": "保函生效与失效时间",
+      "category": "必要条款",
+      "source_ids": [
+        "B11"
+      ],
+      "action": "clause_example",
+      "file": "clauses/seller/必要条款.md"
+    }
+  ]
+}

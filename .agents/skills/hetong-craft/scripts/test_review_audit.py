@@ -31,11 +31,11 @@ def span(text, cid='1'):
             '<w:r><w:commentReference w:id="' + cid + '"/></w:r>')
 
 
-def comment(cid='1', text='期限应从实际到货起算。', author='示例署名'):
+def comment(cid='1', text='期限应从实际到货起算。', author='YYX'):
     return f'<w:comment w:id="{cid}" w:author="{author}"><w:p>{run(text)}</w:p></w:comment>'
 
 
-def rev(text, rid='2', author='示例署名', kind='ins'):
+def rev(text, rid='2', author='YYX', kind='ins'):
     content = run(text) if kind == 'ins' else '<w:r><w:delText>' + text + '</w:delText></w:r>'
     return f'<w:{kind} w:id="{rid}" w:author="{author}">{content}</w:{kind}>'
 
@@ -67,7 +67,7 @@ class ReviewAuditTests(unittest.TestCase):
                    rev('实际到货后', '3') + run('开始。'))
         final = self.package('final', '<w:p>' + content + '</w:p>', comment())
         original_bytes = final.read_bytes()
-        result = audit(final, before, '示例署名')
+        result = audit(final, before, 'YYX')
         self.assertFalse(result['errors'])
         anchor = result['comments'][0]['anchors'][0]
         self.assertEqual(anchor['text'], '实际到货后开始。')
@@ -80,7 +80,7 @@ class ReviewAuditTests(unittest.TestCase):
         before = self.package('before', body, comment('0', '旧批注', 'OLD'))
         final = self.package('final', body + '<w:p>' + span(run('新内容')) + '</w:p>',
                              comment('0', '旧批注', 'OLD') + comment())
-        result = audit(final, before, '示例署名')
+        result = audit(final, before, 'YYX')
         self.assertFalse(result['errors'])
         self.assertEqual(result['summary']['new_comments'], 1)
         self.assertEqual(result['summary']['new_revisions'], 0)
@@ -88,7 +88,7 @@ class ReviewAuditTests(unittest.TestCase):
     def test_same_author_does_not_hide_historical_rewrite(self):
         before = self.package('before', '<w:p>' + rev('原文', '7') + '</w:p>')
         final = self.package('final', '<w:p>' + rev('偷改', '7') + '</w:p>')
-        self.assertTrue(any('历史修订' in e for e in audit(final, before, '示例署名')['errors']))
+        self.assertTrue(any('历史修订' in e for e in audit(final, before, 'YYX')['errors']))
 
     def test_missing_and_duplicate_anchor_rejected(self):
         for body in [run('无锚点'), span(run('甲')) + span(run('乙'))]:
@@ -106,14 +106,14 @@ class ReviewAuditTests(unittest.TestCase):
     def test_wrong_new_author_rejected(self):
         final = self.package('final', '<w:p>' + span(rev('到货', author='wrong')) + '</w:p>',
                              comment(author='wrong'))
-        self.assertEqual(sum('作者不符' in e for e in audit(final, author='示例署名')['errors']), 2)
+        self.assertEqual(sum('作者不符' in e for e in audit(final, author='YYX')['errors']), 2)
 
     def test_comments_only_allows_run_split_but_not_text_change(self):
         before = self.package('before', '<w:p>' + run('实际到货后开始。') + '</w:p>')
         final = self.package('final', '<w:p>' + run('实际') + span(run('到货后')) + run('开始。') + '</w:p>', comment())
-        self.assertFalse(audit(final, before, '示例署名', True)['errors'])
+        self.assertFalse(audit(final, before, 'YYX', True)['errors'])
         changed = self.package('changed', '<w:p>' + span(run('付款后开始。')) + '</w:p>', comment())
-        self.assertTrue(audit(changed, before, '示例署名', True)['errors'])
+        self.assertTrue(audit(changed, before, 'YYX', True)['errors'])
 
     def test_cross_paragraph_and_image_are_review_warnings_not_failures(self):
         body = ('<w:p><w:commentRangeStart w:id="1"/>' + run('前半句') +

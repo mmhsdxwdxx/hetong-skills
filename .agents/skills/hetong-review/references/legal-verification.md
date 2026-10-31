@@ -47,8 +47,14 @@
 已核对过的基础文本入口示例：
 
 - 《民法典》合同编公开文本：<https://www.cac.gov.cn/2020-06/01/c_15925617772683192.htm>
-- 合同编通则司法解释（法释〔2023〕13号）：<https://www.court.gov.cn/zixun/xiangqing/419382.html>
-- 《增值税法》公开文本：<https://www.gov.cn/yaowen/liebiao/202412/content_6994557.htm>；其施行时间应结合审核日和过渡规则核验，不能把新旧规则混用。
+- 合同编通则司法解释（法释〔2023〕13号）：<https://www.court.gov.cn/fabu/xiangqing/419382.html>
+- 《增值税法》公开文本：<https://fgk.chinatax.gov.cn/zcfgk/c100009/c5237365/content.html>；
+  [实施条例](https://fgk.chinatax.gov.cn/zcfgk/c100010/c5246349/content.html)。两者自 2026 年 1 月 1 日施行；
+  增值税暂行条例同时废止，仍须结合纳税义务发生时点及过渡规定，不只看签约日。
+- 涉及第三方回款条件：核对[2025 年款项支付条例](https://www.miit.gov.cn/jgsj/zfs/xzfg/art/2025/art_d9b6cd05f3734869aa34caff247089ff.html)
+  及[法释〔2024〕11号](https://www.court.gov.cn/zixun/xiangqing/441281.html)，先核对订约时企业规模；不把批复中的旧条例条号直接改为新条号。
+- 涉及破产取回、退款或财产隔离：核对[企业破产法](https://www.samr.gov.cn/zw/zfxxgk/fdzdgknr/bgt/art/2023/art_d60b9e67b65240e4a739143cca5b57a6.html)及适用司法解释；
+  付款、SN 锁定或账户称为“共管”不当然产生所有权、取回权或优先受偿。修订草案不得作为现行规则。
 
 ### 核验纪律
 

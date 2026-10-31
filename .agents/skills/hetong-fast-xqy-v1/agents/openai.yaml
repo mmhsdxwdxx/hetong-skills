@@ -1,0 +1,4 @@
+interface:
+  display_name: "XQY 快速合同审核 v1"
+  short_description: "按甲乙方立场快审，交付详细Word报告和以统一编号对应的原稿批注稿"
+  default_prompt: "请用 $hetong-fast-xqy-v1 按我指定的立场快审，交付详细审核报告和原稿批注稿，以R编号关联建议，突出本方固定条款。"

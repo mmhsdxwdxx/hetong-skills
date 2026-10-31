@@ -15,14 +15,13 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-SKILLS = ("hetong-craft", "hetong-review", "hetong-server")
+SKILLS = ("hetong-craft", "hetong-review", "hetong-fast-xqy-v1")
 IGNORE = shutil.ignore_patterns(
     "__pycache__", "*.pyc", "*.pyo", ".ruff_cache", ".DS_Store",
-    "test_*.py", "evals", "agents",
 )
 RUNTIME_NOTE = (
     "\n> **WorkBuddy 运行提示**：本技能已按 WorkBuddy Skill 包安装。"
-    "脚本只依赖 Python 标准库；优先使用当前会话可用的 `python`、`py -3` 或 `python3`。"
+    "核心读取与审核脚本以 Python 标准库为主；快审Word生成还需 python-docx。优先使用当前会话可用的 `python`、`py -3` 或 `python3`。"
     "Office 页面渲染需要额外安装 LibreOffice；没有时不影响 DOCX 读取、红线、审核和暗改检测。\n"
 )
 
@@ -79,7 +78,7 @@ def zip_tree(root: Path, destination: Path, top: Path) -> None:
 
 UMBRELLA_SKILL = """---
 name: hetong
-description: 中文商务合同工作台，覆盖起草、修订、润色、完善、审核、版本对比、关闭核验和两版暗改检测。需要处理合同时使用；服务器采购/销售合同同时加载专用基线。审核默认只读，修改必须单独授权。
+description: 中文商务合同工作台，覆盖起草、修订、润色、完善、审核、XQY快审、履约时间轴和两版暗改检测。审核默认只读，修改必须单独授权。
 agent_created: true
 user-invocable: true
 ---
@@ -94,10 +93,14 @@ user-invocable: true
    读取 `bundled/hetong-review/SKILL.md`，按其流程执行；默认只读，不改原件。
 2. **起草、修订、润色、完善、Word 深读、红线/批注、Office 处理**  
    读取 `bundled/hetong-craft/SKILL.md`。
-3. **服务器采购/销售合同**  
-   先按第 1 或第 2 项读取通用技能，再读取 `bundled/hetong-server/SKILL.md`，按甲方 A01—A04 或乙方 B01—B11 核对；不得把服务器底线套到其他合同。
+3. **点名XQY快审／徐启源口径快审**
+   读取 `bundled/hetong-fast-xqy-v1/SKILL.md`，按本次立场交付详细报告和原稿批注副本。
 4. **两版近似合同、怀疑绕过修订直接改正文**  
-   读取 `bundled/hetong-server/references/hidden-change-review.md`，并运行 `bundled/hetong-server/scripts/hidden_change.py`。
+   读取 `bundled/hetong-craft/references/hidden-change-review.md`，并运行 `bundled/hetong-craft/scripts/hidden_change.py`。
+5. **履约时间轴与付款、交付、保函、发票联动**
+   读取 `bundled/hetong-craft/references/contract-timeline.md`，使用其中的离线模板。
+
+甲乙方买卖条款统一在craft内，按实际角色和本次选择使用；原独立hetong-server已撤并。
 
 ## 硬规则
 
@@ -110,7 +113,7 @@ user-invocable: true
 
 ## 运行
 
-脚本只依赖 Python 3.9+ 标准库；按当前环境使用 `python`、`py -3` 或 `python3`。Office 页面渲染需要 LibreOffice，没有它不影响 DOCX 读取、红线、审核和暗改检测。
+核心读取与审核脚本以 Python 3.9+ 标准库为主；快审Word生成还需 python-docx。按当前环境使用 `python`、`py -3` 或 `python3`。Office页面渲染需要LibreOffice；以实际可用能力为准，不把缺少渲染说成已验证页面。
 """
 
 

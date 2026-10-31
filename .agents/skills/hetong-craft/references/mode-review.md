@@ -6,12 +6,18 @@
 
 ## 执行入口
 
+命中“hetong-fast-xqy-v1／xqy快审／徐启源口径快审”时，改按
+[XQY快速审核](../../hetong-fast-xqy-v1/SKILL.md)执行；不再加载下面的深度报告模板或通用问卷。
+该专用分支允许报告内少量独立建议写法，仍禁止将未确认方案写入合同。其他审核保持下述流程。
+
 先读取并执行 [hetong-review](../../hetong-review/SKILL.md)，按其要求加载
 [审查总清单](checklist-review.md)、[风险模式库](risk-patterns.md)、
 [语言体例](style-zh-hetong.md) 及 docx 工作流。专项技能是本模式的下游实现；
 项目规则与 `hetong-craft` 铁律仍居上位。
 
 ## 权限与模式衔接
+
+完整授权判断见 [共用边界](task-authorization.md)，已有明确授权不重复获取。
 
 1. **审核、版本对比、复审默认只读。** 诊断报告可以给出风险、依据、修订方向和
    保护机制需求，但不直接改写合同原件。

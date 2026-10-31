@@ -119,6 +119,21 @@ MODERN_COMMENT_PARTS = (
     "word/commentsExtensible.xml",
     "word/people.xml",
 )
+# 追加传统批注时可以保留既有条目并同步维护的现代批注部件
+MAINTAINED_COMMENT_PARTS = (
+    "word/commentsExtended.xml",
+    "word/commentsIds.xml",
+    "word/people.xml",
+)
+# 新式可扩展批注线程部件：无法安全追加传统批注，仍按 fail-closed 拒绝
+BLOCKING_COMMENT_PARTS = ("word/commentsExtensible.xml",)
+# 现代批注部件里 8 位十六进制段落标识（commentEx/commentsIds 用它关联批注）
+PARA_ID_TOKEN_RE = re.compile(
+    r'(?:[A-Za-z_][\w.\-]*:)?paraId="([0-9A-Fa-f]{8})"'
+)
+W14_NS = "http://schemas.microsoft.com/office/word/2010/wordml"
+W15_NS = "http://schemas.microsoft.com/office/word/2012/wordml"
+W16CID_NS = "http://schemas.microsoft.com/office/word/2016/wordml/cid"
 
 # 复杂段落 / 祖先阻断清单
 BLOCKED_ANCESTORS = {
@@ -146,6 +161,10 @@ ALLOWED_CHANGED_MEMBERS = {
     "word/comments.xml",
     "word/_rels/document.xml.rels",
     "[Content_Types].xml",
+    # 追加批注时只为新批注补写条目；既有条目按原字节保留，由 verify 单独核对
+    "word/commentsExtended.xml",
+    "word/commentsIds.xml",
+    "word/people.xml",
 }
 ALLOWED_ADDED_MEMBERS = {"word/comments.xml"}
 
@@ -417,6 +436,16 @@ def set_wattr(el, prefix, local, value):
     el.setAttribute(wq(prefix, local), value)
 
 
+def declared_prefix(root, uri):
+    """返回根元素上为 uri 声明的非空前缀；未声明则 None。
+
+    用于在既有部件中复用其自身的命名空间前缀（w14 / w15 / w16cid），
+    避免写入单位声明的前缀而被 XML 解析器拒绝。
+    """
+    prefix = prefix_for_ns(root, uri)
+    return prefix or None
+
+
 # --------------------------------------------------------------------------
 # ZIP 包层
 # --------------------------------------------------------------------------
@@ -615,11 +644,22 @@ def analyze_package(pkg, doc):
             blockers.append("无法读取 [Content_Types].xml：%s" % exc)
 
     present_modern = [n for n in MODERN_COMMENT_PARTS if n in pkg.members]
-    if present_modern:
+    blocking_modern = [n for n in BLOCKING_COMMENT_PARTS if n in pkg.members]
+    if blocking_modern:
         blockers.append(
-            "存在现代批注扩展部件（%s），拒绝追加传统批注"
-            % "、".join(present_modern)
+            "存在无法安全维护的现代批注扩展部件（%s），拒绝写入"
+            % "、".join(blocking_modern)
         )
+    else:
+        maintained_modern = [
+            n for n in MAINTAINED_COMMENT_PARTS if n in pkg.members
+        ]
+        if maintained_modern:
+            joined = "、".join(maintained_modern)
+            warnings.append(
+                f"文档含现代批注扩展部件（{joined}）：既有条目按原字节保留，"
+                "新增批注同步补写 commentEx、durableId 与 people 记录"
+            )
 
     root_ns = None
     if doc is not None:
@@ -696,6 +736,23 @@ class ParagraphSpec:
         return not self.blockers
 
 
+def _is_comment_reference_run(run):
+    """纯批注引用 run：含 commentReference 且无任何 w:t。
+
+    这类 run 是既有批注的锚点，不是可编辑正文；改写段落时按原位保留。
+    """
+    if not element_children(run):
+        return False
+    has_ref = False
+    for desc in iter_elements_in_order(run):
+        ln = local_name(desc)
+        if ln == "t":
+            return False
+        if ln == "commentReference":
+            has_ref = True
+    return has_ref
+
+
 def _simple_run_children_ok(run):
     """run 只允许 rPr（至多一个，且在最前）与 w:t。"""
     reasons = []
@@ -720,6 +777,10 @@ def _simple_run_children_ok(run):
                 if pln in HIDDEN_TOGGLES and _on_off_enabled(prop):
                     reasons.append("hidden_text:%s" % pln)
         elif ln == "t":
+            seen_non_rpr = True
+        elif ln == "lastRenderedPageBreak":
+            # Word 排版提示元素，不含文字；改写该 run 时按不可见提示丢弃，
+            # 由客户端重新分页，不影响正文文字与批注锚点。
             seen_non_rpr = True
         else:
             reasons.append("run_child:%s" % ln)
@@ -751,7 +812,9 @@ def paragraph_blockers(node, ancestors):
         reasons.append("nested_table")
 
     ppr_count = 0
-    for ch in element_children(node):
+    text_run_positions = []
+    anchor_positions = []
+    for idx, ch in enumerate(element_children(node)):
         ln = local_name(ch)
         if ln == "pPr":
             ppr_count += 1
@@ -764,9 +827,22 @@ def paragraph_blockers(node, ancestors):
                 if dln in COMMENT_ANCHOR_TAGS:
                     reasons.append("existing_comment_anchor:%s" % dln)
         elif ln == "r":
-            reasons.extend(_simple_run_children_ok(ch))
+            if _is_comment_reference_run(ch):
+                anchor_positions.append(idx)
+            else:
+                text_run_positions.append(idx)
+                reasons.extend(_simple_run_children_ok(ch))
+        elif ln in ("commentRangeStart", "commentRangeEnd"):
+            anchor_positions.append(idx)
         else:
             reasons.append("paragraph_child:%s" % ln)
+    # 既有批注锚点只允许整体位于文本 run 的一侧；夹在文本 run 之间会与改写相交
+    anchors_outside = not anchor_positions or not text_run_positions or (
+        max(anchor_positions) < min(text_run_positions)
+        or min(anchor_positions) > max(text_run_positions)
+    )
+    if not anchors_outside:
+        reasons.append("interleaved_comment_anchor")
     return sorted(set(reasons))
 
 
@@ -1488,6 +1564,9 @@ def rewrite_paragraph(
             return
         emitted_empty.add(idx)
         run = runs[idx]
+        if _is_comment_reference_run(run.node):
+            # 既有批注引用 run 按原位保留，不克隆、不移位
+            return
         emitted.append(
             Emitted(
                 run.node.cloneNode(True), "equal", (run.start, run.end)
@@ -1602,17 +1681,20 @@ def rewrite_paragraph(
             final.append(cend)
             final.append(cref)
 
-    ppr = None
-    for ch in element_children(paragraph):
-        if local_name(ch) == "pPr":
-            ppr = ch
-            break
-    for ch in list(paragraph.childNodes):
-        if ch is ppr:
-            continue
-        paragraph.removeChild(ch)
+    # 只替换参与改写的文本 run；既有批注锚点（commentRangeStart/End 与
+    # commentReference run）原位保留，不重建、不移动。
+    replaceable = [
+        run.node
+        for run in runs
+        if not _is_comment_reference_run(run.node)
+    ]
+    if not replaceable:
+        raise InputError("段落 %s 没有可替换的正文 run" % op["para"])
+    anchor_node = replaceable[0]
     for node in final:
-        paragraph.appendChild(node)
+        paragraph.insertBefore(node, anchor_node)
+    for node in replaceable:
+        paragraph.removeChild(node)
 
     return rev_id, comment_id, {
         "para": op["para"],
@@ -1625,7 +1707,7 @@ def rewrite_paragraph(
 # --------------------------------------------------------------------------
 
 
-def comment_xml_text(prefix, cid, author, date, body):
+def comment_xml_text(prefix, cid, author, date, body, para_id=None, w14_prefix=None):
     q = lambda local: wq(prefix, local)  # noqa: E731
     lines = body.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     if not lines:
@@ -1638,13 +1720,19 @@ def comment_xml_text(prefix, cid, author, date, body):
             '<%s xml:space="preserve">%s</%s>'
             % (q("t"), xml_escape(line), q("t"))
         )
+    para_attr = ""
+    if para_id and w14_prefix:
+        para_attr = (
+            f' {w14_prefix}:paraId="{para_id}" '
+            f'{w14_prefix}:textId="77777777"'
+        )
     val = wq(prefix, "val")
     body_xml = (
-        '<%s><%s><%s %s="CommentText"/></%s>'
+        '<%s%s><%s><%s %s="CommentText"/></%s>'
         '<%s><%s><%s %s="CommentReference"/></%s><%s/></%s>'
         '<%s>%s</%s></%s>'
         % (
-            q("p"), q("pPr"), q("pStyle"), val, q("pPr"),
+            q("p"), para_attr, q("pPr"), q("pStyle"), val, q("pPr"),
             q("r"), q("rPr"), q("rStyle"), val, q("rPr"),
             q("annotationRef"), q("r"),
             q("r"), "".join(run_parts), q("r"), q("p"),
@@ -1663,11 +1751,13 @@ def comment_xml_text(prefix, cid, author, date, body):
     )
 
 
-def build_comments_part(pkg, ctx, comments_data, author, date):
-    """返回 (new_comments_bytes, is_new)。existing 内容按原始字节保留。
+def build_comments_part(pkg, ctx, comments_data, author, date, para_ids=None):
+    """返回 (new_comments_bytes, is_new, effective_para_ids)。既有内容按原字节保留。
 
     comments_data 为 [(comment_id, body_text), ...]；新批注 XML 使用目标部件
     自身的命名空间前缀，避免 document.xml 与 comments.xml 前缀不同导致非法 XML。
+    para_ids 为与 comments_data 等长的 8 位段落标识；仅在既有 comments.xml
+    声明了 w14 命名空间时写入，供 commentEx/commentsIds 关联使用。
     """
     if pkg.has("word/comments.xml"):
         original = pkg.get("word/comments.xml")
@@ -1678,9 +1768,19 @@ def build_comments_part(pkg, ctx, comments_data, author, date):
         prefix, _ = resolve_w_prefix(root)
         if not prefix:
             raise PackageError("word/comments.xml 使用默认命名空间，拒绝追加")
+        w14_prefix = declared_prefix(root, W14_NS)
+        ids = list(para_ids or [])
         new_comments = [
-            comment_xml_text(prefix, cid, author, date, body)
-            for cid, body in comments_data
+            comment_xml_text(
+                prefix,
+                cid,
+                author,
+                date,
+                body,
+                para_id=(ids[i] if i < len(ids) else None),
+                w14_prefix=w14_prefix,
+            )
+            for i, (cid, body) in enumerate(comments_data)
         ]
         enc_match = re.search(
             rb"encoding\s*=\s*[\"']([^\"']+)", bytes(original[:300]), re.I
@@ -1718,7 +1818,11 @@ def build_comments_part(pkg, ctx, comments_data, author, date):
         new_bytes = new_text.encode("utf-8")
         # 必须仍是合法 XML
         parse_xml(new_bytes, "word/comments.xml")
-        return new_bytes, False
+        return new_bytes, False, (
+            [ids[i] for i in range(len(comments_data)) if i < len(ids)]
+            if w14_prefix
+            else []
+        )
 
     prefix = ctx.w_prefix or "w"
     if not prefix:
@@ -1734,7 +1838,147 @@ def build_comments_part(pkg, ctx, comments_data, author, date):
     )
     data = text.encode("utf-8")
     parse_xml(data, "word/comments.xml")
-    return data, True
+    return data, True, []
+
+
+def collect_para_ids(pkg):
+    """收集包内已使用的 8 位段落标识（大写），供新批注分配唯一值。"""
+    used = set()
+    for name in (
+        "word/document.xml",
+        "word/comments.xml",
+        "word/commentsExtended.xml",
+        "word/commentsIds.xml",
+    ):
+        if not pkg.has(name):
+            continue
+        text = pkg.get(name).decode("utf-8", "ignore")
+        for match in PARA_ID_TOKEN_RE.finditer(text):
+            used.add(match.group(1).upper())
+    return used
+
+
+def stable_hex_token(seed, used):
+    """由 seed 确定地生成 8 位十六进制标识；同 seed 同 used 必得同结果。
+
+    verify 会用相同输入重建预期包，因此不得使用随机数。
+    """
+    attempt = 0
+    while True:
+        raw = f"{seed}|{attempt}"
+        hex_id = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:8].upper()
+        if hex_id != "00000000" and hex_id not in used:
+            used.add(hex_id)
+            return hex_id
+        attempt += 1
+
+
+def append_root_children(pkg, name, root_local, children):
+    """在既有部件根元素闭合前追加子元素；既有字节原样保留。
+
+    只做文本级插入，不重新序列化整个部件，避免改写既有条目。
+    """
+    if not children:
+        return None
+    original = pkg.get(name)
+    try:
+        text = original.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise PackageError(f"{name} 不是 UTF-8：{exc}") from exc
+    doc = parse_xml(original, name)
+    if local_name(doc.documentElement) != root_local:
+        raise PackageError(f"{name} 根元素不是 {root_local}")
+    match = re.search(
+        rf"<([A-Za-z_][\w.\-]*:)?{re.escape(root_local)}\b", text
+    )
+    if not match:
+        raise PackageError(f"无法定位 {name} 根元素")
+    prefix = match.group(1) or ""
+    close = f"</{prefix}{root_local}>"
+    idx = text.rfind(close)
+    if idx < 0:
+        raise PackageError(f"无法定位 {name} 根元素闭合位置")
+    data = (text[:idx] + "".join(children) + text[idx:]).encode("utf-8")
+    parse_xml(data, name)
+    return data
+
+
+def extend_modern_comment_parts(pkg, entries, author):
+    """为新增批注同步维护 commentEx / durableId / people 记录。
+
+    entries 为 [(comment_id, para_id), ...]。仅处理文档中实际存在的部件，
+    既有条目按原字节保留，绝不删除、改写或重排。
+    """
+    entries = [(cid, pid) for cid, pid in entries if pid]
+    if not entries:
+        return {}
+    out = {}
+
+    name = "word/commentsExtended.xml"
+    if pkg.has(name):
+        root = parse_xml(pkg.get(name), name).documentElement
+        prefix = declared_prefix(root, W15_NS)
+        if prefix is None:
+            raise PackageError(f"{name} 未声明 w15 命名空间，拒绝追加")
+        children = [
+            f'<{prefix}:commentEx {prefix}:paraId="{pid}" {prefix}:done="0"/>'
+            for _, pid in entries
+        ]
+        data = append_root_children(pkg, name, "commentsEx", children)
+        if data is not None:
+            out[name] = data
+
+    name = "word/commentsIds.xml"
+    if pkg.has(name):
+        root = parse_xml(pkg.get(name), name).documentElement
+        prefix = declared_prefix(root, W16CID_NS)
+        if prefix is None:
+            raise PackageError(f"{name} 未声明 w16cid 命名空间，拒绝追加")
+        durable_used = {
+            match.group(1).upper()
+            for match in re.finditer(
+                r'durableId="([0-9A-Fa-f]{8})"',
+                pkg.get(name).decode("utf-8", "ignore"),
+            )
+        }
+        children = []
+        for cid, pid in entries:
+            durable = stable_hex_token(f"durable:{cid}:{pid}", durable_used)
+            children.append(
+                f'<{prefix}:commentId {prefix}:paraId="{pid}" '
+                f'{prefix}:durableId="{durable}"/>'
+            )
+        data = append_root_children(pkg, name, "commentsIds", children)
+        if data is not None:
+            out[name] = data
+
+    name = "word/people.xml"
+    if pkg.has(name):
+        root = parse_xml(pkg.get(name), name).documentElement
+        prefix = declared_prefix(root, W15_NS)
+        if prefix is None:
+            raise PackageError(f"{name} 未声明 w15 命名空间，拒绝追加")
+        present = {
+            match.group(1)
+            for match in re.finditer(
+                rf'{re.escape(prefix)}:author="([^"]*)"',
+                pkg.get(name).decode("utf-8", "ignore"),
+            )
+        }
+        if author not in present:
+            who = quoteattr(author)
+            person_xml = (
+                f"<{prefix}:person {prefix}:author={who}>"
+                f'<{prefix}:presenceInfo {prefix}:providerId="None" '
+                f"{prefix}:userId={who}/>"
+                f"</{prefix}:person>"
+            )
+            children = [person_xml]
+            data = append_root_children(pkg, name, "people", children)
+            if data is not None:
+                out[name] = data
+
+    return out
 
 
 def ensure_content_type(pkg):
@@ -1870,8 +2114,22 @@ def build_result(ctx, plan, author, timestamp=None):
         comments_data.append((this_comment_id, body or ""))
 
     doc_bytes = serialize_like(ctx.doc_xml, ctx.doc)
-    comments_bytes, is_new = build_comments_part(
-        ctx.pkg, ctx, comments_data, author, date
+    existing_comments_part = ctx.pkg.has("word/comments.xml")
+    para_pool = collect_para_ids(ctx.pkg)
+    candidate_para_ids = [
+        stable_hex_token(f"comment-para:{cid}:{date}", para_pool)
+        for cid, _ in comments_data
+    ] if existing_comments_part else []
+    comments_bytes, is_new, used_para_ids = build_comments_part(
+        ctx.pkg, ctx, comments_data, author, date, candidate_para_ids
+    )
+    modern_bytes = extend_modern_comment_parts(
+        ctx.pkg,
+        [
+            (comments_data[i][0], used_para_ids[i])
+            for i in range(min(len(comments_data), len(used_para_ids)))
+        ],
+        author,
     )
     ct_bytes = ensure_content_type(ctx.pkg)
     rels_bytes = ensure_comments_relationship(ctx.pkg)
@@ -1882,6 +2140,7 @@ def build_result(ctx, plan, author, timestamp=None):
         "[Content_Types].xml": ct_bytes,
         "word/_rels/document.xml.rels": rels_bytes,
     }
+    replacements.update(modern_bytes)
     additions = {}
     if is_new:
         additions["word/comments.xml"] = comments_bytes
@@ -2364,6 +2623,166 @@ def _new_change_metadata(result_pkg, min_rev_id, min_comment_id):
     return meta
 
 
+def _new_comment_meta(result_pkg, new_comment_ids):
+    """返回 {comment_id: (paraId, author)}；paraId 取自该批注最后一个段落。"""
+    if not result_pkg.has("word/comments.xml"):
+        return {}
+    doc = parse_xml(result_pkg.get("word/comments.xml"), "word/comments.xml")
+    out = {}
+    for el in iter_elements_in_order(doc.documentElement):
+        if local_name(el) != "comment":
+            continue
+        cid = str(attr_local(el, "id"))
+        if cid not in new_comment_ids:
+            continue
+        last = None
+        for node in iter_elements_in_order(el):
+            if local_name(node) == "p":
+                last = node
+        if last is None:
+            continue
+        para_id = last.getAttributeNS(W14_NS, "paraId") or ""
+        if para_id:
+            out[cid] = (para_id.upper(), attr_local(el, "author") or "")
+    return out
+
+
+def _check_modern_comment_parts(input_pkg, result_pkg, new_comment_ids):
+    """核对现代批注部件：既有条目不减少，新批注条目齐备且可关联。"""
+
+    def _tokens(pkg, name):
+        return Counter(
+            match.group(1).upper()
+            for match in PARA_ID_TOKEN_RE.finditer(
+                pkg.get(name).decode("utf-8", "ignore")
+            )
+        )
+
+    errors = []
+    for name in MAINTAINED_COMMENT_PARTS:
+        if not input_pkg.has(name):
+            continue
+        if not result_pkg.has(name):
+            errors.append(f"结果文件缺少原现代批注部件：{name}")
+            continue
+        try:
+            before = parse_xml(input_pkg.get(name), name)
+            after = parse_xml(result_pkg.get(name), name)
+        except PackageError as exc:
+            errors.append(f"{name} 无法解析：{exc}")
+            continue
+        if local_name(before.documentElement) != local_name(after.documentElement):
+            errors.append(f"{name} 根元素被改动")
+            continue
+        before_tokens = _tokens(input_pkg, name)
+        after_tokens = _tokens(result_pkg, name)
+        lost = sorted(k for k in before_tokens if after_tokens[k] < before_tokens[k])
+        if lost:
+            errors.append(
+                f"{name} 丢失或减少了既有 paraId 记录：{'、'.join(lost)}"
+            )
+
+    meta = _new_comment_meta(result_pkg, set(new_comment_ids))
+    if not meta:
+        return errors
+
+    entries = {}
+    name = "word/commentsExtended.xml"
+    if result_pkg.has(name):
+        doc = parse_xml(result_pkg.get(name), name)
+        for el in iter_elements_in_order(doc.documentElement):
+            if local_name(el) != "commentEx":
+                continue
+            pid = (attr_local(el, "paraId") or "").upper()
+            if pid:
+                entries[pid] = (attr_local(el, "done") or "").lower()
+
+    durable = {}
+    name = "word/commentsIds.xml"
+    if result_pkg.has(name):
+        doc = parse_xml(result_pkg.get(name), name)
+        for el in iter_elements_in_order(doc.documentElement):
+            if local_name(el) != "commentId":
+                continue
+            pid = (attr_local(el, "paraId") or "").upper()
+            did = (attr_local(el, "durableId") or "").upper()
+            if pid and did:
+                durable[pid] = did
+
+    people = set()
+    name = "word/people.xml"
+    if result_pkg.has(name):
+        doc = parse_xml(result_pkg.get(name), name)
+        for el in iter_elements_in_order(doc.documentElement):
+            if local_name(el) == "person":
+                people.add(attr_local(el, "author") or "")
+
+    for cid in new_comment_ids:
+        entry = meta.get(cid)
+        if not entry:
+            continue
+        pid, author = entry
+        if result_pkg.has("word/commentsExtended.xml"):
+            if pid not in entries:
+                errors.append(
+                    f"新批注 {cid}（paraId {pid}）缺少 commentEx 记录"
+                )
+            elif entries[pid] not in ("0", "false", "off"):
+                errors.append(
+                    f"新批注 {cid} 的 commentEx 状态不是未解决（{entries[pid]}）"
+                )
+        if result_pkg.has("word/commentsIds.xml") and pid not in durable:
+            errors.append(
+                f"新批注 {cid}（paraId {pid}）缺少 durableId 记录"
+            )
+        if (
+            result_pkg.has("word/people.xml")
+            and author
+            and author not in people
+        ):
+            errors.append(f"word/people.xml 缺少批注作者记录：{author}")
+    if result_pkg.has("word/commentsIds.xml"):
+        durables = [did for did in durable.values()]
+        if len(set(durables)) != len(durables):
+            errors.append("word/commentsIds.xml 存在重复 durableId")
+    return errors
+
+
+def canonical_node_xml(node, label="段落"):
+    """把属性值中的制表/换行规范为空格后比较，消除 XML 属性值规范化的表示差异。
+
+    XML 1.0 §3.3.3 要求解析器把属性值里的制表符、换行符规范为空格（VML 的
+    o:gfxdata、style 等属性常见以字符引用保存换行）。同一棵树经本引擎重新
+    序列化后，字符引用会写成字面换行，两种写法解析后语义相同但字节不同。
+    比对“未改动段落”时按规范化后的属性值比较，避免把该等价差异误报为改动；
+    元素文字（w:t）不受影响，任何真实文字或结构变化仍会被检出。
+    """
+    try:
+        clone = node.cloneNode(True)
+    except AttributeError:
+        return node.toxml()
+    stack = [clone]
+    while stack:
+        cur = stack.pop()
+        if cur.nodeType == Node.ELEMENT_NODE and cur.attributes is not None:
+            attrs = cur.attributes
+            for i in range(attrs.length):
+                attr = attrs.item(i)
+                value = attr.value
+                normalized = (
+                    value.replace("\r\n", " ")
+                    .replace("\r", " ")
+                    .replace("\n", " ")
+                    .replace("\t", " ")
+                )
+                if normalized != value:
+                    attr.value = normalized
+        for child in cur.childNodes:
+            if child.nodeType == Node.ELEMENT_NODE:
+                stack.append(child)
+    return clone.toxml()
+
+
 def verify_core(input_pkg, result_pkg, plan):
     """核心验证；返回报告 dict（ok / checks / errors）。"""
     errors = []
@@ -2519,6 +2938,12 @@ def verify_core(input_pkg, result_pkg, plan):
     errors.extend(comment_errors)
     checks["comments_closure"] = not comment_errors
 
+    modern_errors = _check_modern_comment_parts(
+        input_pkg, result_pkg, new_comment_ids
+    )
+    errors.extend(modern_errors)
+    checks["modern_comment_parts"] = not modern_errors
+
     rel_targets = _relations_comments_target(
         result_pkg.get("word/_rels/document.xml.rels")
     )
@@ -2578,25 +3003,29 @@ def verify_core(input_pkg, result_pkg, plan):
         if paragraph.pid in op_pids:
             continue
         if idx >= len(result_paragraphs) or (
-            result_paragraphs[idx].node.toxml() != paragraph.node.toxml()
+            canonical_node_xml(result_paragraphs[idx].node)
+            != canonical_node_xml(paragraph.node)
         ):
             untouched_ok = False
             errors.append("未列入计划的段落 %s 被改动" % paragraph.pid)
     checks["untouched_paragraphs_unchanged"] = untouched_ok
 
+    # 含既有修订的段落一律不得触碰；批注锚点段落只有在计划内且锚点数量不变
+    # （见 existing_comment_anchors_preserved）时才允许改写正文。
     locked_ok = True
     for idx, paragraph in enumerate(ctx.paragraphs):
-        locked = any(
-            local_name(el) in REV_TAGS or local_name(el) in COMMENT_ANCHOR_TAGS
+        has_revision = any(
+            local_name(el) in REV_TAGS
             for el in iter_elements_in_order(paragraph.node)
         )
-        if not locked:
+        if not has_revision:
             continue
         if idx >= len(result_paragraphs) or (
-            result_paragraphs[idx].node.toxml() != paragraph.node.toxml()
+            canonical_node_xml(result_paragraphs[idx].node)
+            != canonical_node_xml(paragraph.node)
         ):
             locked_ok = False
-            errors.append("含既有修订/批注锚的段落 %s 被改动" % paragraph.pid)
+            errors.append(f"含既有修订的段落 {paragraph.pid} 被改动")
     checks["locked_paragraphs_unchanged"] = locked_ok
 
     input_anchors = _anchor_counts(input_pkg)
@@ -2970,10 +3399,25 @@ def cmd_apply(args):
         raise InputError("输出不能覆盖 plan.json")
     if os.path.exists(out_abs):
         raise InputError("输出文件已存在，拒绝覆盖：%s" % args.out)
-    author = validate_author(args.author)
     ctx = load_context(args.file, for_write=True)
     plan = _load_plan_file(args.plan)
     rebuilt = validate_plan(ctx, plan)
+
+    intake = None
+    if getattr(args, "intake_state", None):
+        own_scripts = os.path.dirname(os.path.realpath(__file__))
+        if own_scripts not in sys.path:
+            sys.path.insert(0, own_scripts)
+        from hetong_intake import gate
+        operation = "revise" if any(op["kind"] == "replace" for op in rebuilt["ops"]) else "comment"
+        try:
+            intake = gate(args.intake_state, operation)
+        except (ValueError, KeyError, TypeError, OSError) as exc:
+            raise InputError("受理回执未通过，未写入 Word：%s" % exc) from exc
+        if not any(item["path"] == os.path.realpath(in_abs) and item["sha256"] == ctx.sha256 for item in intake["sources"]):
+            raise InputError("受理回执不属于本次输入文件，未写入 Word")
+
+    author = validate_author(args.author or (intake.get("review_author", "SR") if intake else "合同审阅"))
 
     result_bytes, stats = build_result(ctx, rebuilt, author)
     # 发布前先自动验证（纯内存）
@@ -2994,6 +3438,7 @@ def cmd_apply(args):
         "author": author,
         "new_revisions": stats["new_revision_ids"],
         "new_comments": stats["new_comment_ids"],
+        "intake_receipt": ({"path": os.path.abspath(args.intake_state), "task_id": intake["task_id"]} if intake else None),
         "verification": {
             "ok": True,
             "checks": report["checks"],
@@ -3073,8 +3518,9 @@ def build_parser():
     p.add_argument("file", help="输入 docx（只读，不得与输出相同）")
     p.add_argument("plan", help="plan.json")
     p.add_argument("-o", "--out", required=True, help="输出 docx（必须不存在）")
+    p.add_argument("--intake-state", help="本次合同受理回执；核对原件指纹、提交状态和改文权限")
     p.add_argument(
-        "--author", default="合同审阅", help="修订/批注作者（默认：合同审阅）"
+        "--author", default=None, help="修订/批注作者（有受理单时沿用其中署名，否则默认：合同审阅）"
     )
     p.set_defaults(func=cmd_apply)
 

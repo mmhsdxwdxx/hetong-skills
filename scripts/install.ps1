@@ -29,6 +29,7 @@ if ($LASTEXITCODE -ge 8) {
 }
 
 Write-Host "Installed skills to: $Destination"
-Write-Host "Start Pi/Codex/DSH from the target project root and reload skills."
+Write-Host "Start a new session from the target project root. Existing sessions are not refreshed."
+Write-Host "hetong-server is retired. Back up and handle any old copy separately; it is not deleted."
 Write-Host "This installer overwrites same-named files but does not delete extra files."
 exit 0

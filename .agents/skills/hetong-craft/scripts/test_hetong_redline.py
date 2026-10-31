@@ -54,6 +54,36 @@ COMMENTS_PART = (
     "</w:comments>"
 )
 
+W14_NS_TEST = "http://schemas.microsoft.com/office/word/2010/wordml"
+W15_NS_TEST = "http://schemas.microsoft.com/office/word/2012/wordml"
+W16CID_NS_TEST = "http://schemas.microsoft.com/office/word/2016/wordml/cid"
+
+# 现代 Word 默认保存的批注部件：新批注必须同步补写条目，既有条目原样保留
+MODERN_COMMENTS_PART = (
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    f'<w:comments xmlns:w="{W_NS}" xmlns:w14="{W14_NS_TEST}">'
+    '<w:comment w:id="0" w:author="旧审阅" w:date="2024-01-01T00:00:00Z">'
+    '<w:p w14:paraId="AAAAAAAA" w14:textId="77777777">'
+    "<w:r><w:t>旧批注内容</w:t></w:r></w:p></w:comment></w:comments>"
+)
+MODERN_EXTENDED_PART = (
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    f'<w15:commentsEx xmlns:w15="{W15_NS_TEST}">'
+    '<w15:commentEx w15:paraId="AAAAAAAA" w15:done="0"/></w15:commentsEx>'
+)
+MODERN_IDS_PART = (
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    f'<w16cid:commentsIds xmlns:w16cid="{W16CID_NS_TEST}">'
+    '<w16cid:commentId w16cid:paraId="AAAAAAAA" w16cid:durableId="11111111"/>'
+    "</w16cid:commentsIds>"
+)
+MODERN_PEOPLE_PART = (
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    f'<w15:people xmlns:w15="{W15_NS_TEST}">'
+    '<w15:person w15:author="旧审阅"><w15:presenceInfo w15:providerId="None" '
+    'w15:userId="旧审阅"/></w15:person></w15:people>'
+)
+
 
 def build_docx_bytes(
     body,
@@ -586,6 +616,42 @@ class TestPlanRejections(Base):
         self.assertIn("不可编辑", payload["error"])
         self.assertFalse(os.path.exists(plan_path))
 
+    def test_zero_width_trailing_comment_anchor_is_preserved(self):
+        """锚点整体位于文本 run 之后（零宽）时允许改写，且锚点原位保留。"""
+        body = p(
+            r("金额100元。"),
+            '<w:commentRangeStart w:id="4"/>',
+            '<w:commentRangeEnd w:id="4"/>',
+            '<w:r><w:rPr><w:rStyle w:val="CommentReference"/></w:rPr>'
+            '<w:commentReference w:id="4"/></w:r>',
+        )
+        docx = self.write(
+            "zeroanchor.docx", body,
+            extras={"word/comments.xml": COMMENTS_PART},
+        )
+        code, report = self.json_cli("inspect", docx)
+        self.assertEqual(code, 0)
+        self.assertTrue(report["paragraphs"][0]["editable"], report["paragraphs"][0])
+        code, plan, _ = self.plan(
+            docx,
+            [{"id": "R1", "para": "RL0001", "old": "100", "new": "200",
+              "reason": "调整金额"}],
+        )
+        self.assertEqual(code, 0, plan)
+        code, payload = self.apply(docx, out="zeroanchor-out.docx")
+        self.assertEqual(code, 0, payload)
+        xml = self.read_docx_part(self.path("zeroanchor-out.docx"))
+        self.assertIn(b'<w:commentRangeStart w:id="4"/>', xml)
+        self.assertIn(b'<w:commentRangeEnd w:id="4"/>', xml)
+        self.assertIn(b'<w:commentReference w:id="4"/>', xml)
+        # 新锚点必须在既有锚点之前，既有锚点保持在段末
+        self.assertLess(
+            xml.find(b'w:id="5"'), xml.find(b'<w:commentRangeStart w:id="4"/>')
+        )
+        code, report = self.verify(docx, result="zeroanchor-out.docx")
+        self.assertEqual(code, 0, report)
+        self.assertTrue(report["checks"]["existing_comments_preserved"])
+
     def test_overlapping_old_occurrences_rejected(self):
         docx = self.write("overlap.docx", p(r("aaaa")))
         code, payload, plan_path = self.plan(
@@ -766,24 +832,94 @@ class TestExistingContent(Base):
 
 
 class TestProtectionAndSafety(Base):
-    def test_modern_comments_extension_rejected(self):
+    def modern_docx(self, name="modern.docx"):
+        return self.write(
+            name,
+            p(r("金额为100元。")),
+            extras={
+                "word/comments.xml": MODERN_COMMENTS_PART,
+                "word/commentsExtended.xml": MODERN_EXTENDED_PART,
+                "word/commentsIds.xml": MODERN_IDS_PART,
+                "word/people.xml": MODERN_PEOPLE_PART,
+            },
+        )
+
+    def test_modern_comment_parts_are_maintained(self):
+        docx = self.modern_docx()
+        code, report = self.json_cli("inspect", docx)
+        self.assertEqual(code, 0)
+        self.assertTrue(report["package"]["safe_for_apply"])
+        self.assertIn(
+            "word/commentsExtended.xml",
+            report["existing_comments"]["modern_extensions"],
+        )
+        code, plan, _ = self.plan(
+            docx,
+            [{"id": "R1", "para": "RL0001", "old": "100", "new": "200",
+              "reason": "调整金额"}],
+        )
+        self.assertEqual(code, 0, plan)
+        code, payload = self.apply(docx, out="out.docx", author="PK")
+        self.assertEqual(code, 0, payload)
+
+        ext = self.read_docx_part(
+            self.path("out.docx"), "word/commentsExtended.xml"
+        ).decode()
+        self.assertIn('w15:paraId="AAAAAAAA"', ext)
+        self.assertEqual(ext.count("<w15:commentEx "), 2)
+        self.assertEqual(ext.count('w15:done="0"'), 2)
+
+        ids = self.read_docx_part(
+            self.path("out.docx"), "word/commentsIds.xml"
+        ).decode()
+        self.assertIn('w16cid:durableId="11111111"', ids)
+        self.assertEqual(ids.count("<w16cid:commentId "), 2)
+        durables = [
+            seg.split('"')[1]
+            for seg in ids.split('w16cid:durableId="')[1:]
+        ]
+        self.assertEqual(len(set(durables)), len(durables))
+
+        people = self.read_docx_part(
+            self.path("out.docx"), "word/people.xml"
+        ).decode()
+        self.assertIn('w15:author="PK"', people)
+        self.assertIn('w15:author="旧审阅"', people)
+
+        code, report = self.verify(docx, result="out.docx")
+        self.assertEqual(code, 0, report)
+        self.assertTrue(report["checks"]["modern_comment_parts"])
+
+    def test_existing_person_not_duplicated(self):
+        docx = self.modern_docx("same-author.docx")
+        code, plan, _ = self.plan(
+            docx,
+            [{"id": "R1", "para": "RL0001", "old": "100", "new": "200",
+              "reason": "调整金额"}],
+        )
+        self.assertEqual(code, 0, plan)
+        code, payload = self.apply(docx, out="out2.docx", author="旧审阅")
+        self.assertEqual(code, 0, payload)
+        people = self.read_docx_part(
+            self.path("out2.docx"), "word/people.xml"
+        ).decode()
+        self.assertEqual(people.count('w15:author="旧审阅"'), 1)
+
+    def test_comments_extensible_still_rejected(self):
         docx = self.write(
-            "modern.docx",
+            "extensible.docx",
             p(r("正文100元。")),
             extras={
-                "word/commentsExtended.xml": (
+                "word/commentsExtensible.xml": (
                     '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-                    '<w15:commentsEx xmlns:w15="http://schemas.microsoft.com/'
-                    'office/word/2012/wordml"/>'
+                    '<w16cex:commentsExtensible xmlns:w16cex="http://schemas.'
+                    'microsoft.com/office/word/2018/wordml/cex"/>'
                 )
             },
         )
         code, report = self.json_cli("inspect", docx)
         self.assertEqual(code, 0)
         self.assertFalse(report["package"]["safe_for_apply"])
-        self.assertIn(
-            "word/commentsExtended.xml", report["existing_comments"]["modern_extensions"]
-        )
         code, payload, plan_path = self.plan(
             docx,
             [{"id": "R1", "para": "RL0001", "old": "100", "new": "200",
@@ -791,6 +927,40 @@ class TestProtectionAndSafety(Base):
         )
         self.assertEqual(code, 2, payload)
         self.assertFalse(os.path.exists(plan_path))
+
+    def test_verify_detects_removed_modern_comment_entry(self):
+        docx = self.modern_docx("tamper-base.docx")
+        code, plan, _ = self.plan(
+            docx,
+            [{"id": "R1", "para": "RL0001", "old": "100", "new": "200",
+              "reason": "调整金额"}],
+        )
+        self.assertEqual(code, 0, plan)
+        code, payload = self.apply(docx, out="tamper.docx")
+        self.assertEqual(code, 0, payload)
+
+        source = self.path("tamper.docx")
+        target = self.path("tamper2.docx")
+        with zipfile.ZipFile(source) as zin:
+            members = {n: zin.read(n) for n in zin.namelist()}
+        ext = members["word/commentsExtended.xml"].decode()
+        cut = ext.replace(
+            '<w15:commentEx w15:paraId="AAAAAAAA" w15:done="0"/>', ""
+        )
+        members["word/commentsExtended.xml"] = cut.encode()
+        with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as zout:
+            for name, data in members.items():
+                zout.writestr(name, data)
+
+        code, report = self.json_cli(
+            "verify", docx, target, self.path("plan.json")
+        )
+        self.assertEqual(code, 3, report)
+        inner = report.get("detail", {}).get("report", report)
+        self.assertFalse(inner["checks"]["modern_comment_parts"])
+        self.assertTrue(
+            any("paraId" in err for err in inner["errors"]), inner["errors"]
+        )
 
     def test_document_protection_fails_closed(self):
         settings = (

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>合同处理设置 · Hetong</title>
+<style>
+:root{font-family:system-ui,-apple-system,"PingFang SC",sans-serif;color:#182a36;background:#f4f6f8}*{box-sizing:border-box}body{margin:0;padding:36px 20px}main{max-width:760px;margin:auto}header{margin-bottom:26px}h1{font-size:26px;margin:8px 0}p{line-height:1.6;color:#536472}.eyebrow{font-size:12px;letter-spacing:1px;color:#1d5e6f}#sources{font-size:13px;word-break:break-all}fieldset{border:1px solid #d8e0e5;background:white;border-radius:12px;padding:20px;margin:18px 0}legend{font-size:16px;font-weight:650;padding:0 6px}.option{display:flex;gap:13px;align-items:flex-start;padding:13px;border:1px solid #e0e6ea;border-radius:8px;margin:9px 0;cursor:pointer}.option:has(input:checked){border-color:#227789;background:#f0fafb}.option input{margin-top:4px;width:18px;height:18px;accent-color:#176578;flex-shrink:0}.option strong{font-size:15px;font-weight:550}.detail{display:block;font-size:13px;line-height:1.5;color:#687985;margin-top:4px}.toolbar{display:flex;gap:12px;margin-top:24px}button{border:0;border-radius:8px;background:#155e70;color:white;padding:12px 24px;font:inherit;cursor:pointer}button.secondary{background:white;border:1px solid #bccbd2;color:#425866}button:disabled{opacity:.45;cursor:not-allowed}.note{font-size:13px}#error{color:#ae2535}#known{padding:10px 0;font-size:13px;color:#536472}.done{padding:24px;background:white;border:1px solid #d8e0e5;border-radius:12px}a{color:#155e70}input:focus-visible,button:focus-visible{outline:3px solid #83bfce;outline-offset:3px}@media(max-width:540px){body{padding:20px 12px}fieldset{padding:14px}.toolbar{position:sticky;bottom:0;background:#f4f6f8;padding:12px 0}}
+</style>
+</head>
+<body><main>
+<header><div class="eyebrow">HETONG / 本次任务</div><h1>合同处理设置</h1><p>确认处理方式和条款范围。已在本次指令中明确的项目不重复询问。</p><div id="sources"></div></header>
+<div id="known"></div><form id="form"><div id="questions"></div><p id="error" role="alert"></p><div class="toolbar"><button id="submit" type="submit" disabled>提交选择</button><button class="secondary" id="cancel" type="button">暂不选择</button></div></form>
+<p class="note">金额、期限、担保等商业条件另以普通文字确认。未选类别不会被自动加入或删除；勾选后仍须点击“提交选择”。</p>
+</main>
+<script>
+let plan=__HETONG_PLAN__;
+const form=document.getElementById('form'),questions=document.getElementById('questions'),error=document.getElementById('error'),submit=document.getElementById('submit');
+const text=(tag,value)=>{const n=document.createElement(tag);n.textContent=value;return n};
+function values(q){return [...form.querySelectorAll('input')].filter(n=>n.name===q.id&&n.checked).map(n=>n.value)}
+function refresh(){submit.disabled=plan.questions.some(q=>values(q).length===0)}
+function render(){
+ questions.replaceChildren();error.textContent='';
+ document.getElementById('sources').textContent='对象：'+plan.sources.map(s=>s.path.split(/[\\/]/).pop()).join('、');
+ document.getElementById('known').textContent='本页仅记录工作范围，不构成商业条件确认。';
+ for(const q of plan.questions){const field=document.createElement('fieldset');field.append(text('legend',q.question));
+  for(const option of q.options){const label=document.createElement('label');label.className='option';const input=document.createElement('input');input.type=q.type==='multi_select'?'checkbox':'radio';input.name=q.id;input.value=option.value;
+   input.addEventListener('change',()=>{if(q.type==='multi_select'&&input.checked){for(const other of field.querySelectorAll('input')){if(other!==input&&(input.value==='__none__'||other.value==='__none__'))other.checked=false}}refresh()});
+   const content=document.createElement('span');content.append(text('strong',option.label));const description=text('span',option.description||'');description.className='detail';content.append(description);label.append(input,content);field.append(label)}questions.append(field)}refresh();
+}
+async function send(cancelled){submit.disabled=true;error.textContent='';const body={request_id:plan.request_id,cancelled,answers:cancelled?[]:plan.questions.map(q=>({id:q.id,type:q.type,value:q.type==='multi_select'?values(q):values(q)[0]}))};
+ try{const response=await fetch('/submit'+location.search,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const result=await response.json();if(!response.ok)throw Error(result.error||'提交失败');if(result.status==='next'){plan=result.plan;render();window.scrollTo(0,0);return}
+ const done=document.createElement('div');done.className='done';done.append(text('h2',result.status==='submitted'?'已提交':'已保留为待选择'));done.append(text('p',result.status==='submitted'?'选择已回传至合同任务，可以回到原对话继续。':'没有默认选择任何类别，原对话仅可继续不依赖这些答案的工作。'));form.replaceWith(done);
+ }catch(e){error.textContent=e.message;refresh()}}
+form.addEventListener('submit',event=>{event.preventDefault();if(!submit.disabled)send(false)});document.getElementById('cancel').addEventListener('click',()=>send(true));render();
+</script></body></html>

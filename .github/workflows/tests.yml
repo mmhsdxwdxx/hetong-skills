@@ -22,8 +22,26 @@ jobs:
           python .agents/skills/hetong-craft/scripts/test_word_reader.py
           python .agents/skills/hetong-craft/scripts/test_review_audit.py
           python .agents/skills/hetong-craft/scripts/test_platform_compat.py
-          python .agents/skills/hetong-server/scripts/test_hidden_change.py
+          python .agents/skills/hetong-craft/scripts/test_hidden_change.py
+          python .agents/skills/hetong-craft/scripts/test_buyer_clause_select.py
+          python .agents/skills/hetong-craft/scripts/test_clause_library.py
+          python .agents/skills/hetong-craft/scripts/test_hetong_intake.py
+          python .agents/skills/hetong-craft/scripts/test_intake_redline.py
           python .agents/skills/hetong-review/scripts/test_review_kit.py
+          python scripts/test_build_workbuddy.py
+
+  reports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install python-docx
+      - name: XQY report and paired delivery
+        run: |
+          python .agents/skills/hetong-fast-xqy-v1/scripts/test_build_report.py
+          python .agents/skills/hetong-fast-xqy-v1/scripts/test_build_bundle.py
 
   windows:
     runs-on: windows-latest
@@ -42,8 +60,13 @@ jobs:
           python .agents/skills/hetong-craft/scripts/test_word_reader.py
           python .agents/skills/hetong-craft/scripts/test_review_audit.py
           python .agents/skills/hetong-craft/scripts/test_platform_compat.py
-          python .agents/skills/hetong-server/scripts/test_hidden_change.py
+          python .agents/skills/hetong-craft/scripts/test_hidden_change.py
+          python .agents/skills/hetong-craft/scripts/test_buyer_clause_select.py
+          python .agents/skills/hetong-craft/scripts/test_clause_library.py
+          python .agents/skills/hetong-craft/scripts/test_hetong_intake.py
+          python .agents/skills/hetong-craft/scripts/test_intake_redline.py
           python .agents/skills/hetong-review/scripts/test_review_kit.py
+          python scripts/test_build_workbuddy.py
       - name: PowerShell installer smoke test
         shell: pwsh
         run: |

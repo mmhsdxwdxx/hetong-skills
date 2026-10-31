@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0-dev.1（develop，2026-10-31）
+
+- 将独立hetong-server撤并至hetong-craft；甲乙方分类条款、受理及未留痕检查统一维护。旧入口属于兼容性变更，升级时先备份旧安装。
+- 新增hetong-fast-xqy-v1：按甲乙方立场生成详细Word审核报告及原稿批注副本，以R编号衔接。
+- 固化履约时间轴规范、A4固定列宽、应付／已付／待退／资金占用口径及离线Markdown／HTML模板。
+- 同步原生受理、按需协作和克制批注规范；提供Claude/Pi项目适配入口。
+- 更新WorkBuddy构建、安装提示及CI到新架构。开发版只供新会话按项目路径加载，不自动刷新既有会话；未变更稳定版标签或创建Release。
+
 ## 1.3.0-dev.1
 
 - 增加 WorkBuddy 原生安装包：`hetong.skill` 单包上传、三套单技能包与合并 zip；安装脚本不修改 WorkBuddy 原有资产。

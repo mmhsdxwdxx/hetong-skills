@@ -1,0 +1,1 @@
+../../.agents/skills/hetong-craft/integrations/claude/hetong-intake.md

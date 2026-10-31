@@ -1,0 +1,386 @@
+{
+  "schema_version": 2,
+  "catalog_id": "buyer-20261029-task5",
+  "status": "active",
+  "source_sha256": "c5ca15b8659371ea7bffae6aed515644293e40fb5ff193395b0dd81eebe31f86",
+  "relations": [
+    {
+      "source_ids": [
+        "A02",
+        "A24"
+      ],
+      "reason": "不同类别的删除指引，可能命中同一免责句；各自可独立选用，按实际位置去重，不跨类合并或恢复范例。"
+    },
+    {
+      "source_ids": [
+        "A05",
+        "A17"
+      ],
+      "reason": "一般价格发票义务与保交开票违约责任分属不同类别，不自动带入未选部分。"
+    },
+    {
+      "source_ids": [
+        "A06",
+        "A11",
+        "A19",
+        "A21",
+        "A22"
+      ],
+      "reason": "货物识别、采购进度资料及随货资料属于不同阶段，不能将一个阶段的SN义务替代其他阶段。"
+    },
+    {
+      "source_ids": [
+        "A13",
+        "A15"
+      ],
+      "reason": "原厂保修及专项补偿与下游损失承担不同，不自动互相包含。"
+    },
+    {
+      "source_ids": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A20"
+      ],
+      "reason": "共管账户与保函分别控制资金和担保；仅选择共管也应提示依赖，但不得自动勾选必要条款。"
+    }
+  ],
+  "library_side": "buyer",
+  "library_dir": "clauses/buyer",
+  "categories": [
+    "保交条款",
+    "必要条款",
+    "一般条款",
+    "其他条款",
+    "共管条款"
+  ],
+  "sources": [
+    {
+      "id": "A01",
+      "title": "预付款保函的受益人、开立与生效",
+      "category": "必要条款"
+    },
+    {
+      "id": "A02",
+      "title": "BIS限制、政府禁令与不可抗力",
+      "category": "其他条款"
+    },
+    {
+      "id": "A03",
+      "title": "保函有效期、延期与提取",
+      "category": "必要条款"
+    },
+    {
+      "id": "A04",
+      "title": "资金共管账户与U盾权限",
+      "category": "共管条款"
+    },
+    {
+      "id": "A05",
+      "title": "固定到仓价格与发票",
+      "category": "一般条款"
+    },
+    {
+      "id": "A06",
+      "title": "标的、SN与权属锁定",
+      "category": "必要条款"
+    },
+    {
+      "id": "A07",
+      "title": "开函时点与下游签约衔接",
+      "category": "必要条款"
+    },
+    {
+      "id": "A08",
+      "title": "保函有效覆盖与交货提前量",
+      "category": "必要条款"
+    },
+    {
+      "id": "A09",
+      "title": "保函全生命周期配合",
+      "category": "必要条款"
+    },
+    {
+      "id": "A10",
+      "title": "验收、拒收与换货",
+      "category": "必要条款"
+    },
+    {
+      "id": "A11",
+      "title": "随货资料",
+      "category": "一般条款"
+    },
+    {
+      "id": "A12",
+      "title": "上游付款与下游回款匹配",
+      "category": "必要条款"
+    },
+    {
+      "id": "A13",
+      "title": "原厂保修与责任传导",
+      "category": "一般条款"
+    },
+    {
+      "id": "A14",
+      "title": "禁止另售、质押与交付第三方",
+      "category": "必要条款"
+    },
+    {
+      "id": "A15",
+      "title": "上游承担下游损失",
+      "category": "必要条款"
+    },
+    {
+      "id": "A16",
+      "title": "解除、退款与破产风险",
+      "category": "必要条款"
+    },
+    {
+      "id": "A17",
+      "title": "分批开票、逾期责任与税务损失担保",
+      "category": "保交条款"
+    },
+    {
+      "id": "A18",
+      "title": "备货通知、税务资料与到场提货",
+      "category": "保交条款"
+    },
+    {
+      "id": "A19",
+      "title": "下单证明、原厂SN与物流凭证",
+      "category": "保交条款"
+    },
+    {
+      "id": "A20",
+      "title": "保函公示、查询与违约责任",
+      "category": "必要条款"
+    },
+    {
+      "id": "A21",
+      "title": "货物信息统一见附件一",
+      "category": "必要条款"
+    },
+    {
+      "id": "A22",
+      "title": "主要货物品名明确为服务器",
+      "category": "必要条款"
+    },
+    {
+      "id": "A23",
+      "title": "海关要求下的附件调整",
+      "category": "必要条款"
+    },
+    {
+      "id": "A24",
+      "title": "政策因素与不可抗力的边界",
+      "category": "一般条款"
+    }
+  ],
+  "modules": [
+    {
+      "id": "M01",
+      "title": "保函受益人、开立交付与生效",
+      "category": "必要条款",
+      "source_ids": [
+        "A01",
+        "A07"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
+    },
+    {
+      "id": "M02",
+      "title": "BIS限制、政府禁令与不可抗力",
+      "category": "其他条款",
+      "source_ids": [
+        "A02"
+      ],
+      "action": "delete_instruction",
+      "file": "clauses/buyer/其他条款.md"
+    },
+    {
+      "id": "M03",
+      "title": "保函有效期、展期退款、索赔与余额管理",
+      "category": "必要条款",
+      "source_ids": [
+        "A03",
+        "A09"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
+    },
+    {
+      "id": "M04",
+      "title": "资金共管账户与U盾权限",
+      "category": "共管条款",
+      "source_ids": [
+        "A04"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/共管条款.md"
+    },
+    {
+      "id": "M05",
+      "title": "固定到仓价格与发票",
+      "category": "一般条款",
+      "source_ids": [
+        "A05"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/一般条款.md"
+    },
+    {
+      "id": "M06",
+      "title": "服务器品名、附件一、SN与货物权属",
+      "category": "必要条款",
+      "source_ids": [
+        "A06",
+        "A21",
+        "A22"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
+    },
+    {
+      "id": "M07",
+      "title": "保函有效覆盖与交货提前量",
+      "category": "必要条款",
+      "source_ids": [
+        "A08"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
+    },
+    {
+      "id": "M08",
+      "title": "验收、拒收与换货",
+      "category": "必要条款",
+      "source_ids": [
+        "A10"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
+    },
+    {
+      "id": "M09",
+      "title": "随货资料",
+      "category": "一般条款",
+      "source_ids": [
+        "A11"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/一般条款.md"
+    },
+    {
+      "id": "M10",
+      "title": "上游付款与下游回款匹配",
+      "category": "必要条款",
+      "source_ids": [
+        "A12"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
+    },
+    {
+      "id": "M11",
+      "title": "原厂保修与责任传导",
+      "category": "一般条款",
+      "source_ids": [
+        "A13"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/一般条款.md"
+    },
+    {
+      "id": "M12",
+      "title": "禁止另售、质押与交付第三方",
+      "category": "必要条款",
+      "source_ids": [
+        "A14"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
+    },
+    {
+      "id": "M13",
+      "title": "上游承担下游损失",
+      "category": "必要条款",
+      "source_ids": [
+        "A15"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
+    },
+    {
+      "id": "M14",
+      "title": "解除、退款与破产风险",
+      "category": "必要条款",
+      "source_ids": [
+        "A16"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
+    },
+    {
+      "id": "M15",
+      "title": "分批开票、逾期责任与税务损失担保",
+      "category": "保交条款",
+      "source_ids": [
+        "A17"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/保交条款.md"
+    },
+    {
+      "id": "M16",
+      "title": "备货通知、税务资料与到场提货",
+      "category": "保交条款",
+      "source_ids": [
+        "A18"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/保交条款.md"
+    },
+    {
+      "id": "M17",
+      "title": "下单证明、原厂SN与物流凭证",
+      "category": "保交条款",
+      "source_ids": [
+        "A19"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/保交条款.md"
+    },
+    {
+      "id": "M18",
+      "title": "保函公示、查询与违约责任",
+      "category": "必要条款",
+      "source_ids": [
+        "A20"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
+    },
+    {
+      "id": "M19",
+      "title": "海关要求下的附件调整",
+      "category": "必要条款",
+      "source_ids": [
+        "A23"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
+    },
+    {
+      "id": "M20",
+      "title": "政策因素与不可抗力的边界",
+      "category": "一般条款",
+      "source_ids": [
+        "A24"
+      ],
+      "action": "delete_instruction",
+      "file": "clauses/buyer/一般条款.md"
+    }
+  ]
+}

@@ -1,58 +1,28 @@
 # hetong-skills
 
-面向中文商务合同的技能包，供 Pi Agent、Codex 和其他支持 Agent Skills 的宿主使用。
-本仓库是公开发布包，**不包含真实合同、客户材料或审核成果**。
+中文商务合同技能包，支持项目级Agent Skills。此仓库仅包含通用方法、经授权的条款库及虚构测试材料，不包含真实合同、客户资料或审核成果。
 
-## 包含内容
+本分支是 **2.0.0-dev.1 开发版**。稳定安装固定到已发布标签，不把develop或main的最新提交当作稳定版本。
 
-```text
-.agents/skills/
-├── hetong-craft/     # 起草、修订、润色、完善、审核统一入口；Word 红线/批注、Word 深读、Office 工具
-├── hetong-review/    # 深度审核、跨合同勾稽、版本对比、关闭核验与保护性条款
-└── hetong-server/    # 服务器采购/销售合同专用 profile；乙方 B01—B11、甲方 A01—A04、两版暗改检测
-```
+| 入口 | 用途 |
+|---|---|
+| hetong-craft | 五模式统一入口、甲乙方条款、受理、Word与Office工具 |
+| hetong-review | 深度审核、版本对比、关闭核验、保护性条款 |
+| hetong-fast-xqy-v1 | XQY八项快审：详细Word报告＋原稿批注副本 |
 
-核心方法、模板、脚本和虚构测试材料均在技能目录内。`hetong-server` 的公开版本已移除
-真实交易排期、历史金额/台数、源文档指纹和具体署名，仅保留可复用的方法结构。乙方视角
-B01—B11 与甲方视角 A01—A04 分列；A01—A04 覆盖保函受益人/生效、BIS 与政府禁令、保函
-有效期与提取、资金共管账户及 U 盾权限。`hetong-server/scripts/hidden_change.py` 可对
-前后两版近似 DOCX 检查绕过修订记录的直接改文，并区分留痕改动、历史减少和非文本变化。
+独立hetong-server已撤并至craft。甲方A01—A24来源整合为20项，乙方B01—B11按类别使用；先锁定真实交易角色与本次范围，不将库中参数当成双方已定条件。旧安装升级前先备份；安装器不自动删除旧server目录，以免损失本地修改。
 
-## WorkBuddy
+## 安装与新会话
 
-如果同事使用 WorkBuddy，不需要安装 Pi/Codex 技能：使用 WorkBuddy 原生安装包。
-
-- **单包上传**：下载 [hetong.skill](https://github.com/mmhsdxwdxx/hetong-skills/releases/download/v1.3.0-dev.1/hetong.skill)，在 WorkBuddy「技能 → 添加技能 → 上传技能」上传一次；
-- **命令行**：下载并解压到 `~/.workbuddy/skills`；
-- **Windows**：解压到 `%USERPROFILE%\.workbuddy\skills`，重启 WorkBuddy；
-- 三套技能的分开安装包仍保留，详见 [WorkBuddy 安装包](workbuddy/README.md)。
-
-`hetong.skill` 内含 `hetong-craft`、`hetong-review`、`hetong-server` 三套技能；
-审核默认只读，修改仍需在对话中明确授权。
-
-## 安装
-
-把包复制到目标项目的 `.agents/skills/`：
+开发试用：
 
 ```bash
-git clone https://github.com/mmhsdxwdxx/hetong-skills.git
+git clone --branch develop https://github.com/mmhsdxwdxx/hetong-skills.git
 cd hetong-skills
 ./scripts/install.sh /path/to/your-project
 ```
 
-也可以手动复制：
-
-```bash
-mkdir -p /path/to/your-project/.agents/skills
-cp -R .agents/skills/. /path/to/your-project/.agents/skills/
-```
-
-安装脚本使用 `rsync -a` 覆盖同名技能文件，但**不会删除**目标项目中的其他技能或文件。
-如果目标项目已有本地修改，请先备份或使用版本控制审查差异。
-
-### Windows 11
-
-Windows 原生使用 PowerShell，不需要 WSL：
+Windows PowerShell：
 
 ```powershell
 git clone --branch develop https://github.com/mmhsdxwdxx/hetong-skills.git
@@ -60,71 +30,39 @@ cd hetong-skills
 .\scripts\install.ps1 -Target "$HOME\Projects\hetong-test"
 ```
 
-也可以直接运行 `scripts\install.cmd`。Windows 安装器使用系统自带的 `robocopy`，不会删除
-目标目录中的额外文件。Office 运行环境：
+从目标项目根目录**新开会话**使用新版。安装脚本复制`.agents/skills/`，不发送刷新、重载或重启指令给既有线程，也不切换模型。既有会话若主动重新读取磁盘文件仍可能读到新内容；文件更新不等于为所有旧会话创建版本隔离。
 
-```powershell
-py -3.12 .agents\skills\hetong-craft\scripts\office_kit.py setup
-py -3.12 .agents\skills\hetong-craft\scripts\office_kit.py doctor
-```
-
-隔离环境在 `%LOCALAPPDATA%\contact-office\venv`；LibreOffice 默认从
-`C:\Program Files\LibreOffice\program\soffice.exe` 发现。Windows 使用系统字体，
-不生成 Unix fontconfig 配置。
-
-从目标项目根目录启动宿主，技能才会通过项目 `.agents/skills/` 被发现。Pi 可显式使用：
+本仓库另含`.claude/skills/`、`.claude/agents/`、`.claude/commands/`及`.pi/extensions/`相对链接，用于直接从此检出启动的本地项目。安装到其他项目时，按需将对应链接或链接目标复制至相同相对位置；Windows或不支持软链接的宿主应复制目标文件，不能使用链接文本。不要覆盖已有同名本地配置。宿主加载以实际探针为准。
 
 ```text
-/skill:hetong-craft
-/skill:hetong-review
-/skill:hetong-server
+请用hetong-craft审核这份采购合同，我方为甲方，先只审不改。
+xqy快审，站乙方立场，合同位置：……。
+请用统一时间轴检查付款、验收、保函与发票是否衔接。
 ```
 
-通用合同使用 `hetong-craft` / `hetong-review`；只有服务器设备采购/销售合同才加载
-`hetong-server`。我方为甲方时使用 A01—A04，为乙方时使用 B01—B11。自然语言说明技能名称也可以。
+## 时间轴与批注
 
-## 更新
+[履约时间轴规范](.agents/skills/hetong-craft/references/contract-timeline.md)固定日期栏及三栏正文：我方现金流及付款义务、交付与担保、发票（万元）。A4版心159.2mm，四列22／52／50／35.2mm，每要点独立换行，无合并标题行。
+
+[Markdown虚构示例](.agents/skills/hetong-craft/assets/contract-timeline-example.md)独立可读；[HTML模板](.agents/skills/hetong-craft/assets/contract-timeline-template.html)不依赖网络，提供稳定列宽与打印版式。应付、已付、待退和资金占用分开，正常履行与违约分支分开。完整图放分析报告或获准附件；批注跟随实际修改或具体问题，不因命中固定条款机械新增。
+
+## 环境与验证
+
+核心合同读取、红线、审阅及类别工具以Python 3.9+标准库为主。快审Word生成需要python-docx；Office转换和页面预览需要LibreOffice及相应字体。使用已有Office环境，或按需运行：
 
 ```bash
-cd /path/to/hetong-skills
-git pull --ff-only
-./scripts/install.sh /path/to/your-project
+python3 .agents/skills/hetong-craft/scripts/office_kit.py setup
+python3 .agents/skills/hetong-craft/scripts/office_kit.py doctor --full
 ```
 
-更新后新开宿主会话或执行相应重载操作。安装脚本不删除目标项目中的额外文件，便于保留
-本地扩展；但会覆盖同名技能文件。当前版本见 `VERSION` 与 GitHub Release。
+测试命令见[技能维护说明](.agents/skills/README.md)，公开验证范围见[VALIDATION](.agents/skills/VALIDATION.md)。CI运行核心回归、快审生成、安装及打包检查；无头预览与Word/WPS实机往返分别报告，不能互相替代。
 
-## 环境
+## WorkBuddy与分发
 
-- Python 3.9+；合同文本核心脚本以标准库为主。
-- Office 深读、PPTX 精修和无头渲染可通过隔离环境安装依赖：
-  `python3 .agents/skills/hetong-craft/scripts/office_kit.py setup`。
-- LibreOffice 仅用于转换和页面渲染，不是合同写入的依赖；缺失时 Office 预览不可用，
-  纯 DOCX 阅读和红线工具仍可运行。
-- Word/WPS 的最终显示、自动编号、复杂表格和分页仍应在目标客户端复核。
+运行`python3 scripts/build_workbuddy.py`可从当前源码生成新版hetong.skill、三套单包和合并包，详见[WorkBuddy说明](workbuddy/README.md)。dist不入Git，本次仅同步develop源码，未发布新的Release附件；历史v1.3.0-dev.1下载仍是旧架构。
 
-## 验证
+## 安全与授权
 
-```bash
-python3 .agents/skills/hetong-craft/scripts/test_hetong_redline.py
-python3 .agents/skills/hetong-craft/scripts/test_word_reader.py
-python3 .agents/skills/hetong-craft/scripts/test_office_kit.py
-python3 .agents/skills/hetong-craft/scripts/test_review_audit.py
-python3 .agents/skills/hetong-craft/scripts/test_platform_compat.py
-python3 .agents/skills/hetong-server/scripts/test_hidden_change.py
-python3 .agents/skills/hetong-review/scripts/test_review_kit.py
-```
+默认只读原件；修订与批注必须在授权范围内另存并保留历史。商业参数以明确确认值为准；法律结论核对现行正式法源。不要将真实合同、账户或客户材料放入公共仓库。示例仅用于演示，不构成交易合意或具体法律意见。
 
-详细验证记录见 `.agents/skills/VALIDATION.md`。
-
-## 安全边界
-
-- 默认只读原件；不自动接受或拒绝修订，不自动删除批注。
-- 修订和批注写入必须显式授权，并应保留原件、计划和验证记录。
-- 不把真实合同、交易信息或客户材料上传到公开服务。
-- 本仓库的示例、数字和虚构测试材料仅用于演示，不构成法律意见。
-- 法律结论需要结合现行法、交易背景和用户确认另行核验。
-
-## 许可证
-
-MIT。详见 [LICENSE](LICENSE)。
+MIT许可证，见[LICENSE](LICENSE)。
