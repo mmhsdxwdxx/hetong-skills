@@ -33,20 +33,17 @@ python3 $O doctor --full
 
 ### Windows 11
 
-Windows 使用 PowerShell 安装和运行，不要求 WSL。进入项目测试目录后：
+Windows使用PowerShell，不要求WSL。首次安装、升级、只检查及非标准路径统一按[Windows安装检查](windows-setup.md)执行；脚本保留虚构Word、PDF和页面图供复核，不刷新已有线程。已安装技能后，在项目根目录运行：
 
 ```powershell
-# 在公开仓库根目录执行，安装到独立测试项目
-.\scripts\install.ps1 -Target "$HOME\Projects\hetong-test"
-
-# Office 运行环境
-py -3.12 .agents\skills\hetong-craft\scripts\office_kit.py setup
-py -3.12 .agents\skills\hetong-craft\scripts\office_kit.py doctor
+# 缺少Python或LibreOffice时才允许安装系统前置软件
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents\skills\hetong-craft\scripts\setup_windows.ps1 -InstallPrerequisites
 ```
 
 Windows 的隔离虚拟环境位于 `%LOCALAPPDATA%\contact-office\venv`，LibreOffice 默认从
 `C:\Program Files\LibreOffice\program\soffice.exe` 发现；Windows 使用系统字体，不生成
 Unix fontconfig 配置。若 Word/WPS 正打开目标文件，先关闭或复制到独立路径再处理。
+非标准LibreOffice位置可用当前进程的`CONTACT_LIBREOFFICE`指定完整可执行文件路径；无效路径报错，不隐式回退。`doctor --full --artifacts <新目录> --out <检查.json>`可保留检查证据；普通`doctor --full`仍使用临时样张。
 
 ### 1. 一次盘点全部输入
 
@@ -190,8 +187,8 @@ python3 <技能目录>/scripts/office_kit.py setup \
   --index-url https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-LibreOffice：`brew install --cask libreoffice`（macOS）。中文预览需要系统可用的 CJK 字体；
+LibreOffice须按实际操作系统安装：Windows版使用官方安装器或上述PowerShell入口；`brew install --cask libreoffice`仅适用于macOS。宿主提供bundled Python并不意味着同时提供LibreOffice，必须核对实际可执行文件。中文预览需要系统可用的CJK字体；
 缺失时 `doctor --full` 会失败并明确提示。本工具自动生成**仅供 LibreOffice 子进程使用**的
-fontconfig 配置，不覆盖用户全局字体设置。
+fontconfig配置仅用于macOS/Linux的LibreOffice子进程，不覆盖用户全局字体设置。Windows直接使用系统字体，并移除该子进程继承的Unix字体配置变量。
 
 任何环境变更后重新运行 `doctor --full`；版本、字体和缓存签名都会变化，旧渲染缓存自动失效。

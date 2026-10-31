@@ -13,7 +13,7 @@
 - 框架外问题只保留明显重大且不重复的事项。依据与限制合并放末尾，全文法条、精算底稿和完整覆盖台账留在核验目录。
 - 页面和Word结构全部可编辑；不把报告转换成截图塞进Word。
 
-宋体必须通过实际渲染核验。环境缺字时使用本机已安装宋体和任务／用户数据内的fontconfig修复；不改全局配置、不下载不明字体、不将“替换成其他字体”当作满足宋体要求。仍不可用则报告字体缺口，不宣称Word版式验收通过。
+宋体和黑体必须通过实际渲染核验。Windows使用系统字体，缺失时检查简体中文补充字体或有授权的字体来源，不生成或套用Unix fontconfig；macOS/Linux可对LibreOffice子进程使用任务／用户数据内的fontconfig。不改全局字体配置、不下载不明字体，不将替代字体称为宋体。按[Windows安装检查](../../hetong-craft/references/windows-setup.md)保留样张和PDF实际字体结果；缺失时不宣称版式验收通过。
 
 ## 输入格式
 
@@ -49,4 +49,4 @@
 
 成功同时生成同名`.md`、`.build.json`；后者记输入／输出SHA和结构检查，**不代表法源／实质／视觉验收通过**。已有输出拒绝覆盖，修改后用新版本文件名。拒绝写入`原件/`及输入原件路径。`--dry-run`不创建任何目录或文件。
 
-生成后用hetong现有Office工具渲染两份文件。Codex宿主以workspace dependencies返回的运行时和bundled LibreOffice为准；其他宿主沿用已验证的hetong Office环境。批注稿保留原稿排版，不应用本页报告字体模板；原生批注另验锚点和历史。保留渲染、双向编号核验及原件未变记录。内部PDF、PNG、虚构样张只在验收或用户要看时展示，不作为真实合同报告。
+生成后用hetong现有Office工具渲染两份文件。Codex先查看workspace dependencies实际返回的能力，不假定存在bundled LibreOffice；可用时复用，否则采用已验证的hetong隔离环境及本机LibreOffice。Windows快审生成器使用隔离环境的Scripts/python.exe，LibreOffice采用本机Windows可执行文件。批注稿保留原稿排版，不应用本页报告字体模板；原生批注另验锚点和历史。保留渲染、双向编号核验及原件未变记录。内部PDF、PNG、虚构样张仅作验收，不作为真实合同报告；PDF通过不等于Word/WPS原生显示及往返已通过。

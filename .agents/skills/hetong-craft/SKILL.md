@@ -130,6 +130,8 @@ LibreOffice/模板转换（Windows））、编辑操作全集（set/insert-after
 Office 精修、PPTX 计划、无头批量渲染、缓存与视觉验收使用
 `scripts/office_kit.py`（自动切换隔离 Python 环境，不依赖 DSH/WPS GUI）：
 
+Windows首次运行、升级依赖或排障时按[Win11安装与检查](references/windows-setup.md)使用`scripts/setup_windows.ps1`；明确区分技能安装、Python依赖、LibreOffice、系统字体和Word/WPS客户端验收。宿主未提供LibreOffice时不假定它已内置；不刷新已有线程。
+
 ```bash
 O=<技能目录>/scripts/office_kit.py
 python3 $O doctor --full                          # 环境、字体和中文文本层自检

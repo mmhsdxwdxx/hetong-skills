@@ -2,7 +2,7 @@
 
 中文商务合同技能包，支持项目级Agent Skills。此仓库仅包含通用方法、经授权的条款库及虚构测试材料，不包含真实合同、客户资料或审核成果。
 
-本分支是 **2.0.0-dev.1 开发版**。稳定安装固定到已发布标签，不把develop或main的最新提交当作稳定版本。
+本分支是 **2.0.0-dev.2 开发版**。稳定安装固定到已发布标签，不把develop或main的最新提交当作稳定版本。
 
 | 入口 | 用途 |
 |---|---|
@@ -29,6 +29,8 @@ git clone --branch develop https://github.com/mmhsdxwdxx/hetong-skills.git
 cd hetong-skills
 .\scripts\install.ps1 -Target "$HOME\Projects\hetong-test"
 ```
+
+**Windows 11使用者可直接按[首次安装、日后升级和检查命令](.agents/skills/hetong-craft/references/windows-setup.md)操作。** 在目标项目根目录用npx安装develop技能后，运行随技能提供的setup_windows.ps1；无需克隆本仓库才能取得检查工具。它会分别核对Python、LibreOffice、中文字体、虚构Word修订批注与预览，并保留证据。
 
 从目标项目根目录**新开会话**使用新版。安装脚本复制`.agents/skills/`，不发送刷新、重载或重启指令给既有线程，也不切换模型。既有会话若主动重新读取磁盘文件仍可能读到新内容；文件更新不等于为所有旧会话创建版本隔离。
 

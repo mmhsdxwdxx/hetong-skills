@@ -87,7 +87,7 @@ python3 $T batch 合同.docx edits.json --in-place   # 执行
 
 1. 把 Markdown 写成带样式的 HTML（标题 h1/h2、正文 p、表格 table、
    加粗 strong、居中 style="text-align:center"）；
-2. `textutil -convert docx 稿.html -output 合同.docx`；
+2. macOS可用`textutil -convert docx 稿.html -output 合同.docx`；Windows用已配置的LibreOffice转换或python-docx／既有模板生成，不执行textutil；
 3. `extract` 检查转换结果（表格、缩进、字体回退），必要时微调 HTML 重转。
 
 若同族已有版式基准文件，更优路径：复制基准 docx 作为壳，用五把刀逐段

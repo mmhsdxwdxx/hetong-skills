@@ -71,6 +71,8 @@ XQY快审保留八项顺序，按本次甲方／乙方及实际买卖角色切�
 
 ## 维护与验证
 
+Windows使用[安装、升级与检查流程](hetong-craft/references/windows-setup.md)。技能、Python依赖、LibreOffice、字体及原生Word/WPS分别验证；PowerShell入口不刷新已有线程。
+
 保持相对引用有效，真实合同和任务成果不得混入技能包。Office环境放在用户数据或任务产出目录，技能中不放缓存、锁文件或虚拟环境。每次改动后运行：
 
 ```bash

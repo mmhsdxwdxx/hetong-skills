@@ -1,5 +1,12 @@
 # 开发版验证范围
 
+## Windows安装与Office完整检查（2.0.0-dev.2）
+
+- 新增PowerShell 5.1／7入口：明确开关才安装缺失系统程序；默认配置隔离依赖并检查，CheckOnly不调用winget或pip。始终保留新的虚构样张及JSON证据，不刷新已有会话。
+- doctor支持保留样张、另存报告和显式LibreOffice路径；Windows子进程清理Unix字体配置。快审CLI统一UTF-8。
+- 虚构样张核对原件不变、原生修订／批注、Word报告、实际PDF字体及页面输出；Word/WPS客户端接受、拒绝、另存往返仍需单独实测。
+- 本地230项原有及扩展回归、4项打包检查通过。CI增加Windows官方LibreOffice MSI哈希验证、PowerShell 5.1完整安装检查、CheckOnly及无效路径拒绝；执行结果以本提交Actions为准。Windows CI运行器不等同于朋友的Win11桌面环境。
+
 2026-10-31同步本地通用源码至2.0.0-dev.1：craft、review、fast-xqy-v1三个入口，旧server已撤并。真实合同、任务目录、用户路径及本地核验日志不属于分发包。
 
 发布同步时复核：

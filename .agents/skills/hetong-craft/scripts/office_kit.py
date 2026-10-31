@@ -8,6 +8,7 @@ Office 虚拟环境。核心写入引擎不调用 Word/WPS，LibreOffice 仅用�
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import html
 import importlib.util
@@ -24,7 +25,7 @@ import zipfile
 from pathlib import Path
 from typing import Any, cast
 
-KIT_VERSION = "1.0.0"
+KIT_VERSION = "1.1.0"
 SCHEMA = "contact-office-kit/1"
 
 # Windows 控制台默认编码可能不是 UTF-8；命令行输出统一为 UTF-8。
@@ -191,6 +192,12 @@ def _package_versions() -> dict[str, str | None]:
 
 
 def _lo_path() -> Path | None:
+    configured = os.environ.get("CONTACT_LIBREOFFICE")
+    if configured:
+        path = Path(configured).expanduser()
+        if not path.is_file():
+            raise OfficeKitError("CONTACT_LIBREOFFICE 必须指向已存在的 LibreOffice 可执行文件")
+        return path.resolve()
     candidates: list[str | None] = [shutil.which("soffice"), shutil.which("soffice.exe")]
     if _is_windows():
         for env_name in ("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA"):
@@ -497,6 +504,10 @@ def _convert_batch(inputs: list[Path], out_dir: Path, timeout: int) -> dict[str,
             "--convert-to", "pdf", "--outdir", str(out_dir), *[str(path) for path in inputs],
         ]
         environment = os.environ.copy()
+        if _is_windows():
+            # A copied Unix setting must not override Windows system font discovery.
+            environment.pop("FONTCONFIG_FILE", None)
+            environment.pop("FONTCONFIG_PATH", None)
         if font_config is not None:
             environment["FONTCONFIG_FILE"] = str(font_config)
         if sys.platform.startswith("linux"):
@@ -946,7 +957,17 @@ def doctor(args: argparse.Namespace) -> dict[str, Any]:
         pdfium = _module("pypdfium2")
         PdfWriter = _module("pypdf").PdfWriter
 
-        with tempfile.TemporaryDirectory(prefix="contact-office-doctor-") as temporary:
+        artifacts = getattr(args, "artifacts", None)
+        if artifacts:
+            target = Path(artifacts).expanduser().resolve()
+            if target.exists() and any(target.iterdir()):
+                raise OfficeKitError("检查样张目录非空；请使用新的目录，不覆盖旧证据")
+            target.mkdir(parents=True, exist_ok=True)
+            workspace = contextlib.nullcontext(str(target))
+            result["artifacts"] = str(target)
+        else:
+            workspace = tempfile.TemporaryDirectory(prefix="contact-office-doctor-")
+        with workspace as temporary:
             pdf_path = Path(temporary) / "blank.pdf"
             writer = PdfWriter()
             writer.add_blank_page(width=72, height=72)
@@ -995,7 +1016,7 @@ def doctor(args: argparse.Namespace) -> dict[str, Any]:
                 completed = subprocess.run(
                     [sys.executable, str(Path(__file__).resolve()), "render", str(docx_path),
                      str(pptx_path), "--out", str(out), "--dpi", "100"],
-                    capture_output=True, text=True, timeout=max(args.timeout, 120), check=False,
+                    capture_output=True, text=True, encoding="utf-8", timeout=max(args.timeout, 120), check=False,
                 )
                 if completed.returncode != 0:
                     detail = ((completed.stderr or "") + "\n" + (completed.stdout or ""))[-2500:].strip()
@@ -1017,7 +1038,7 @@ def doctor(args: argparse.Namespace) -> dict[str, Any]:
                     "cjk_unique_glyphs": len(set(cjk_chars)),
                 }
                 if not cjk_ok:
-                    raise OfficeKitError("渲染 PDF 的中文文本层缺失或不可提取；检查 CJK 字体/fontconfig")
+                    raise OfficeKitError("渲染 PDF 的中文文本层缺失或不可提取；Windows检查系统中文字体，macOS/Linux检查CJK字体及进程fontconfig")
         packages_ok = all(result["packages"].values())
         result["ok"] = bool(packages_ok and current_lo and result["pdfium"].get("ok"))
         if args.full:
@@ -1064,8 +1085,12 @@ def build_parser() -> argparse.ArgumentParser:
     doc = sub.add_parser("doctor", help="检查 Office 运行环境")
     doc.add_argument("--full", action="store_true", help="生成中文 DOCX/PPTX 并完整渲染一次")
     doc.add_argument("--timeout", type=int, default=180)
+    doc.add_argument("--artifacts", help="保留虚构检查样张及预览；目录须为空或不存在")
+    doc.add_argument("--out", help="另存JSON检查报告")
     def doctor_handler(args):
         result = doctor(args)
+        if args.out:
+            _json_dump(result, Path(args.out).expanduser().resolve())
         _json_dump(result)
         return 0 if result["ok"] else 1
     doc.set_defaults(handler=doctor_handler)

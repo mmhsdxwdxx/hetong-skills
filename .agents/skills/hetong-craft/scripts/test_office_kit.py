@@ -190,10 +190,17 @@ class RuntimeTests(OfficeFixture):
         self.assertTrue(data["libreoffice"]["version"].startswith("LibreOffice"))
 
     def test_doctor_full_cjk_render(self) -> None:
-        data = run_cli("doctor", "--full", "--timeout", "240")
+        artifacts = self.root / "留存检查样张"
+        receipt = self.root / "doctor.json"
+        data = run_cli("doctor", "--full", "--timeout", "240", "--artifacts", artifacts, "--out", receipt)
         self.assertTrue(data["ok"])
         self.assertTrue(data["full_render"]["cjk_pdf_text"])
         self.assertEqual(data["full_render"]["libreoffice_invocations"], 1)
+        self.assertTrue((artifacts / "doctor.docx").is_file())
+        self.assertEqual(json.loads(receipt.read_text(encoding="utf-8")), data)
+        refused = run_cli("doctor", "--full", "--artifacts", artifacts, expect=1)
+        self.assertFalse(refused["ok"])
+        self.assertTrue((artifacts / "doctor.docx").is_file())
 
 
 class InspectTests(OfficeFixture):

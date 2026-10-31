@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0-dev.2（develop，2026-10-31）
+
+- 增加Windows PowerShell安装／只检查入口，按明确开关安装缺失Python和LibreOffice，隔离依赖及检查证据。
+- 增加虚构Word修订、批注、XQY报告与真实PDF字体检查；doctor可保留样张和JSON报告。
+- 支持非标准LibreOffice可执行路径；Windows渲染进程不继承Unix字体配置，快审CLI统一UTF-8输出。
+- 纠正Windows系统字体与macOS/Linux fontconfig的边界，不假定Codex捆绑LibreOffice。
+- CI增加Windows实际LibreOffice渲染及PowerShell 5.1端到端检查；不刷新已有线程，不发布稳定版。
+
 ## 2.0.0-dev.1（develop，2026-10-31）
 
 - 将独立hetong-server撤并至hetong-craft；甲乙方分类条款、受理及未留痕检查统一维护。旧入口属于兼容性变更，升级时先备份旧安装。
