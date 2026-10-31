@@ -92,45 +92,13 @@ jobs:
       PYTHONIOENCODING: "utf-8"
     steps:
       - uses: actions/checkout@v4
-      - name: Install Windows Simplified Chinese supplemental fonts if missing
-        timeout-minutes: 5
+      - name: Record Windows font inventory
         shell: pwsh
         run: |
-          if (-not (Test-Path "$env:WINDIR\Fonts\simhei.ttf")) {
-            # GitHub's disposable image disables Windows Update in Configure-System.ps1.
-            # Enable only this CI VM's FOD download path; never do this in user setup scripts.
-            $wu = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
-            Get-ItemProperty -Path $wu -ErrorAction SilentlyContinue | Select-Object DoNotConnectToWindowsUpdateInternetLocations,DisableWindowsUpdateAccess
-            New-Item -Path $wu -Force | Out-Null
-            Set-ItemProperty -Path $wu -Name DoNotConnectToWindowsUpdateInternetLocations -Value 0
-            Set-ItemProperty -Path $wu -Name DisableWindowsUpdateAccess -Value 0
-            $au = Join-Path $wu 'AU'
-            New-Item -Path $au -Force | Out-Null
-            Set-ItemProperty -Path $au -Name UseWUServer -Value 0
-            Set-ItemProperty -Path $au -Name NoAutoUpdate -Value 0
-            Set-ItemProperty -Path $au -Name AUOptions -Value 2
-            Set-Service -Name wuauserv -StartupType Manual
-            Restart-Service -Name wuauserv -ErrorAction Stop
-            Start-Service -Name BITS
-            $fontCapability = 'Language.Fonts.Hans~~~und-HANS~0.0.1.0'
-            Get-WindowsCapability -Online -Name $fontCapability | Format-Table Name,State
-            $diagnostics = Join-Path $env:RUNNER_TEMP 'hetong-win11-fonts'
-            New-Item -ItemType Directory -Force -Path $diagnostics | Out-Null
-            Get-ChildItem "$env:WINDIR\WinSxS" -Filter simhei.ttf -Recurse -ErrorAction SilentlyContinue | Select-Object FullName | Out-File (Join-Path $diagnostics 'font-candidates.txt')
-            $dismLog = Join-Path $diagnostics 'dism.log'
-            $dism = Start-Process dism.exe -ArgumentList @('/Online','/English','/Add-Capability',"/CapabilityName:$fontCapability",'/NoRestart',"/LogPath:$dismLog",'/LogLevel:4') -PassThru -RedirectStandardOutput (Join-Path $diagnostics 'stdout.txt') -RedirectStandardError (Join-Path $diagnostics 'stderr.txt')
-            if (-not $dism.WaitForExit(180000)) {
-              $dism.Kill()
-              $dism.WaitForExit()
-              Get-Content $dismLog -Tail 80 -ErrorAction SilentlyContinue
-              throw 'Windows font FOD timed out after 180 seconds; diagnostic logs retained'
-            }
-            if ($dism.ExitCode -notin @(0,3010)) {
-              Get-Content $dismLog -Tail 80 -ErrorAction SilentlyContinue
-              throw "DISM font installation failed: $($dism.ExitCode)"
-            }
-          }
-          if (-not (Test-Path "$env:WINDIR\Fonts\simhei.ttf")) { throw 'Windows SimHei font was not installed' }
+          Get-ComputerInfo -Property OsName,OsVersion,OsArchitecture | Format-List
+          Get-Item "$env:WINDIR\Fonts\simsun.ttc", "$env:WINDIR\Fonts\simhei.ttf" -ErrorAction SilentlyContinue | Select-Object Name,Length
+          # Do not modify Windows Update policy or rely on a FOD download in CI.
+          # The strict setup must reject a report rendered without its required fonts.
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -146,31 +114,40 @@ jobs:
           }
           $installed = Start-Process msiexec.exe -ArgumentList @('/i', "`"$msi`"", '/qn', '/norestart', 'ALLUSERS=1') -Wait -PassThru
           if ($installed.ExitCode -notin @(0,3010)) { throw "MSI install failed: $($installed.ExitCode)" }
-      - name: Windows PowerShell 5.1 setup, Word redline and actual rendering
-        shell: pwsh
-        run: |
-          Get-ComputerInfo -Property OsName,OsVersion,OsArchitecture | Format-List
-          Get-Item "$env:WINDIR\Fonts\simsun.ttc", "$env:WINDIR\Fonts\simhei.ttf" -ErrorAction SilentlyContinue | Select-Object Name,Length
-          $python = (Get-Command python).Source
-          $venv = Join-Path $env:RUNNER_TEMP 'hetong runtime\venv'
-          $output = Join-Path $env:RUNNER_TEMP 'hetong-win11-setup\合同 环境'
-          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents\skills\hetong-craft\scripts\setup_windows.ps1 -PythonExecutable $python -Venv $venv -OutputDirectory $output
-          if ($LASTEXITCODE -ne 0) { throw 'Windows setup/full smoke failed' }
-          $result = Get-Content -Raw -LiteralPath (Join-Path $output 'setup-result.json') | ConvertFrom-Json
-          if (-not $result.ok -or -not $result.setup_performed) { throw 'Setup receipt invalid' }
-      - name: Check-only mode and invalid explicit path
+      - name: PowerShell 5.1 runtime, rendering and strict missing-font guard
         shell: pwsh
         run: |
           $python = (Get-Command python).Source
           $venv = Join-Path $env:RUNNER_TEMP 'hetong runtime\venv'
-          $output = Join-Path $env:RUNNER_TEMP 'hetong-win11-check\合同 复查'
-          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents\skills\hetong-craft\scripts\setup_windows.ps1 -PythonExecutable $python -Venv $venv -CheckOnly -OutputDirectory $output
-          if ($LASTEXITCODE -ne 0) { throw 'Check-only failed' }
-          $result = Get-Content -Raw -LiteralPath (Join-Path $output 'setup-result.json') | ConvertFrom-Json
-          if (-not $result.ok -or $result.setup_performed) { throw 'Check-only performed setup' }
+          foreach ($mode in @('setup','check')) {
+            $output = Join-Path $env:RUNNER_TEMP "hetong-win11-$mode\合同 环境"
+            $arguments = @('-NoProfile','-ExecutionPolicy','Bypass','-File','.agents\skills\hetong-craft\scripts\setup_windows.ps1','-PythonExecutable',$python,'-Venv',$venv,'-OutputDirectory',$output)
+            if ($mode -eq 'check') { $arguments += '-CheckOnly' }
+            & powershell.exe @arguments
+            $code = $LASTEXITCODE
+            $result = Get-Content -Raw -LiteralPath (Join-Path $output 'setup-result.json') | ConvertFrom-Json
+            $doctor = Get-Content -Raw -LiteralPath (Join-Path $output 'doctor.json') | ConvertFrom-Json
+            $smoke = Get-Content -Raw -LiteralPath (Join-Path $output 'Word样张\smoke-result.json') | ConvertFrom-Json
+            if ($result.setup_performed -ne ($mode -eq 'setup')) { throw 'Unexpected dependency setup in check-only mode' }
+            if (-not $doctor.ok -or -not $smoke.synthetic_only -or -not $smoke.source_unchanged -or -not $smoke.redline_verified -or $smoke.rendered_documents -ne 3) { throw 'Runtime or document checks failed' }
+            foreach ($name in @('insertions','deletions','comments')) {
+              if ($smoke.native_marks.$name -ne 1) { throw "Unexpected native mark count: $name" }
+            }
+            if (-not $smoke.required_report_fonts.'宋体') { throw 'Expected base SimSun font missing from report' }
+            if ($smoke.required_report_fonts.'黑体') {
+              if ($code -ne 0 -or -not $result.ok -or -not $smoke.ok) { throw 'Full-font setup must pass' }
+              "$mode : runtime and required-font acceptance passed" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            } else {
+              if ($code -eq 0 -or $result.ok -or $smoke.ok -or $smoke.error_code -ne 'required_report_fonts_missing') { throw 'Missing SimHei must be rejected explicitly' }
+              Write-Warning 'Runtime verified; full font acceptance BLOCKED by absent SimHei. Strict rejection verified.'
+              "$mode : runtime passed; missing-font guard passed; full font acceptance BLOCKED (SimHei absent)" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            }
+          }
           $bad = Join-Path $env:RUNNER_TEMP 'hetong-win11-invalid'
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents\skills\hetong-craft\scripts\setup_windows.ps1 -PythonExecutable $python -CheckOnly -LibreOfficeExecutable 'C:\does-not-exist\soffice.exe' -OutputDirectory $bad
           if ($LASTEXITCODE -eq 0) { throw 'Invalid LibreOffice path must fail' }
+          $invalid = Get-Content -Raw -LiteralPath (Join-Path $bad 'setup-result.json') | ConvertFrom-Json
+          if ($invalid.ok -or $invalid.setup_performed -or $invalid.error -notlike '*LibreOffice*') { throw 'Invalid-path receipt did not identify LibreOffice' }
           exit 0
       - uses: actions/upload-artifact@v4
         if: always()

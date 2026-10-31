@@ -6,7 +6,7 @@
 - 增加虚构Word修订、批注、XQY报告与真实PDF字体检查；doctor可保留样张和JSON报告。
 - 支持非标准LibreOffice可执行路径；Windows渲染进程不继承Unix字体配置，快审CLI统一UTF-8输出。
 - 纠正Windows系统字体与macOS/Linux fontconfig的边界，不假定Codex捆绑LibreOffice。
-- CI增加Windows实际LibreOffice渲染及PowerShell 5.1端到端检查；不刷新已有线程，不发布稳定版。
+- CI增加Windows 11实际LibreOffice渲染、PowerShell 5.1与缺字拒绝检查；完整字体验收依赖目标机补齐官方字体。不会刷新已有线程，不发布稳定版。
 
 ## 2.0.0-dev.1（develop，2026-10-31）
 

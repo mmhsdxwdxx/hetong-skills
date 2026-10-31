@@ -120,6 +120,7 @@ def run(out: Path, require_fonts: bool = False) -> dict:
               'report_pdf_font_names': sorted(report_fonts),
               'artifacts': str(out), 'native_word_wps_roundtrip': 'not performed'}
     if require_fonts and not all(exact.values()):
+        result['error_code'] = 'required_report_fonts_missing'
         result['error'] = '样张未实际使用宋体/黑体。Windows可在管理员PowerShell执行 Add-WindowsCapability -Online -Name Language.Fonts.Hans~~~und-HANS~0.0.1.0 安装官方简体中文补充字体后重跑；也可通过系统可选功能安装。不分发微软字体。'
     (out / 'smoke-result.json').write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
     return result
