@@ -4,11 +4,13 @@
 
 ## 首次安装：发给使用者
 
-1. 准备Git、Node.js 22.20+和Codex。若缺Git或Node，可从其官方安装器安装，或在PowerShell分别执行下面两条命令；完成后重新打开终端，让PATH生效。
+1. 准备Git、Node.js 22.20+和Codex。若缺Git或Node，可从其官方安装器安装，或在PowerShell分别执行下面两条命令；完成后重新打开终端，让PATH生效。黑体属于Windows简体中文补充字体；若未安装，在管理员PowerShell执行下面的字体命令（或通过系统“可选功能”安装）。不下载或随技能分发微软字体。
 
 ```powershell
 winget install --id Git.Git --exact --source winget
 winget install --id OpenJS.NodeJS.LTS --exact --source winget
+# 仅缺少黑体时安装Windows官方补充字体；本行需管理员权限
+if (-not (Test-Path "$env:WINDIR\Fonts\simhei.ttf")) { Add-WindowsCapability -Online -Name Language.Fonts.Hans~~~und-HANS~0.0.1.0 }
 ```
 
 2. 在“合同”仓库根目录打开PowerShell，安装develop分支的三个技能，然后运行Office安装检查。Windows使用npx.cmd，避免系统把npx解析为受执行策略限制的npx.ps1：

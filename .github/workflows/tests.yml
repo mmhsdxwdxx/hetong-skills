@@ -105,6 +105,15 @@ jobs:
           }
           $installed = Start-Process msiexec.exe -ArgumentList @('/i', "`"$msi`"", '/qn', '/norestart', 'ALLUSERS=1') -Wait -PassThru
           if ($installed.ExitCode -notin @(0,3010)) { throw "MSI install failed: $($installed.ExitCode)" }
+      - name: Install Windows Simplified Chinese supplemental fonts if missing
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "$env:WINDIR\Fonts\simhei.ttf")) {
+            $fontCapability = 'Language.Fonts.Hans~~~und-HANS~0.0.1.0'
+            Get-WindowsCapability -Online -Name $fontCapability | Format-Table Name,State
+            Add-WindowsCapability -Online -Name $fontCapability -ErrorAction Stop | Format-Table
+          }
+          if (-not (Test-Path "$env:WINDIR\Fonts\simhei.ttf")) { throw 'Windows SimHei font was not installed' }
       - name: Windows PowerShell 5.1 setup, Word redline and actual rendering
         shell: pwsh
         run: |
