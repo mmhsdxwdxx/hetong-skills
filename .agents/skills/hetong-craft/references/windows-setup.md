@@ -11,10 +11,10 @@ winget install --id Git.Git --exact --source winget
 winget install --id OpenJS.NodeJS.LTS --exact --source winget
 ```
 
-2. 在“合同”仓库根目录打开PowerShell，安装develop分支的三个技能，然后运行Office安装检查：
+2. 在“合同”仓库根目录打开PowerShell，安装develop分支的三个技能，然后运行Office安装检查。Windows使用npx.cmd，避免系统把npx解析为受执行策略限制的npx.ps1：
 
 ```powershell
-npx --yes skills@latest add https://github.com/mmhsdxwdxx/hetong-skills/tree/develop --skill '*' --agent codex --yes
+npx.cmd --yes skills@latest add https://github.com/mmhsdxwdxx/hetong-skills/tree/develop --skill '*' --agent codex --yes
 if ($LASTEXITCODE -ne 0) { throw '技能安装失败，请先检查网络和Git。' }
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents\skills\hetong-craft\scripts\setup_windows.ps1 -InstallPrerequisites
 ```
@@ -30,7 +30,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents\skills\hetong-cr
 在同一个项目根目录重复安装命令即可更新develop中的技能。然后不带安装系统软件开关运行检查入口，它会更新锁定的Office依赖并重新检查：
 
 ```powershell
-npx --yes skills@latest add https://github.com/mmhsdxwdxx/hetong-skills/tree/develop --skill '*' --agent codex --yes
+npx.cmd --yes skills@latest add https://github.com/mmhsdxwdxx/hetong-skills/tree/develop --skill '*' --agent codex --yes
 if ($LASTEXITCODE -ne 0) { throw '技能升级失败。' }
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents\skills\hetong-craft\scripts\setup_windows.ps1
 ```
