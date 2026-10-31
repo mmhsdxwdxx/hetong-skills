@@ -13,7 +13,7 @@
 - 框架外问题只保留明显重大且不重复的事项。依据与限制合并放末尾，全文法条、精算底稿和完整覆盖台账留在核验目录。
 - 页面和Word结构全部可编辑；不把报告转换成截图塞进Word。
 
-宋体和黑体必须通过实际渲染核验。DOCX使用标准字体族名SimSun（宋体）和SimHei（黑体），避免英文Windows环境无法解析中文别名；这不是替换字体。Windows使用系统字体，缺失时检查简体中文补充字体或有授权的字体来源，不生成或套用Unix fontconfig；macOS/Linux可对LibreOffice子进程使用任务／用户数据内的fontconfig。不改全局字体配置、不下载不明字体，不将替代字体称为宋体。按[Windows安装检查](../../hetong-craft/references/windows-setup.md)保留样张和PDF实际字体结果；缺失时不宣称版式验收通过。
+宋体和黑体必须通过实际渲染核验。DOCX使用标准字体族名SimSun（宋体）和SimHei（黑体），减少对本地化别名的依赖；这不是替换字体。Windows使用系统字体，缺失时检查简体中文补充字体或有授权的字体来源，不生成或套用Unix fontconfig；macOS/Linux可对LibreOffice子进程使用任务／用户数据内的fontconfig。不改全局字体配置、不下载不明字体，不将替代字体称为宋体。按[Windows安装检查](../../hetong-craft/references/windows-setup.md)保留样张和PDF实际字体结果；缺失时不宣称版式验收通过。
 
 ## 输入格式
 

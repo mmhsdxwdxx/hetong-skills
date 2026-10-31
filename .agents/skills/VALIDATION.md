@@ -1,11 +1,13 @@
 # 开发版验证范围
 
-## Windows安装与Office完整检查（2.0.0-dev.2）
+## Windows安装与Office检查（2.0.0-dev.2）
 
 - 新增PowerShell 5.1／7入口：明确开关才安装缺失系统程序；默认配置隔离依赖并检查，CheckOnly不调用winget或pip。始终保留新的虚构样张及JSON证据，不刷新已有会话。
 - doctor支持保留样张、另存报告和显式LibreOffice路径；Windows子进程清理Unix字体配置。快审CLI统一UTF-8。
 - 虚构样张核对原件不变、原生修订／批注、Word报告、实际PDF字体及页面输出；Word/WPS客户端接受、拒绝、另存往返仍需单独实测。
-- 本地230项原有及扩展回归、4项打包检查通过。CI增加Windows官方LibreOffice MSI哈希验证、PowerShell 5.1完整安装检查、CheckOnly及无效路径拒绝；执行结果以本提交Actions为准。Windows CI运行器不等同于朋友的Win11桌面环境。
+- 本地230项原有及扩展回归、4项打包检查通过。CI增加Windows官方LibreOffice MSI哈希验证、PowerShell 5.1安装检查、CheckOnly及无效路径拒绝；执行结果以本提交Actions为准。Windows CI运行器不等同于朋友的Win11桌面环境。
+- Windows 11 ARM运行器使用x64 Python／LibreOffice兼容层；另有Windows x64运行器核对核心脚本。Win11镜像缺少SimHei，补充字体依赖Windows Update且此次补装超时，故不宣称Win11完整字体验收通过。CI分别核对实际文档链路和缺字时严格拒绝：缺字分支必须返回非零状态、明确错误码并保留全部样张，其他异常不能算通过。不改写用户的更新策略，不以替代字体冒充黑体。
+- 具备宋体／黑体的macOS本机样张已核对实际PDF字体。Windows使用者仍须补齐官方字体，并通过同一严格检查；Word/WPS原生界面往返未执行。
 
 2026-10-31同步本地通用源码至2.0.0-dev.1：craft、review、fast-xqy-v1三个入口，旧server已撤并。真实合同、任务目录、用户路径及本地核验日志不属于分发包。
 

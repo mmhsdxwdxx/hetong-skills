@@ -4,11 +4,13 @@
 
 ## 首次安装：发给使用者
 
-1. 准备Git、Node.js 22.20+和Codex。若缺Git或Node，可从其官方安装器安装，或在PowerShell分别执行下面两条命令；完成后重新打开终端，让PATH生效。
+1. 准备Git、Node.js 22.20+和Codex。若缺Git或Node，可从其官方安装器安装，或在PowerShell分别执行下面两条命令；完成后重新打开终端，让PATH生效。黑体属于Windows简体中文补充字体；若未安装，在管理员PowerShell执行下面的字体命令（或通过系统“可选功能”安装）。不下载或随技能分发微软字体。
 
 ```powershell
 winget install --id Git.Git --exact --source winget
 winget install --id OpenJS.NodeJS.LTS --exact --source winget
+# 仅缺少黑体时安装Windows官方补充字体；本行需管理员权限
+if (-not (Test-Path "$env:WINDIR\Fonts\simhei.ttf")) { Add-WindowsCapability -Online -Name Language.Fonts.Hans~~~und-HANS~0.0.1.0 }
 ```
 
 2. 在“合同”仓库根目录打开PowerShell，安装develop分支的三个技能，然后运行Office安装检查。Windows使用npx.cmd，避免系统把npx解析为受执行策略限制的npx.ps1：
@@ -52,6 +54,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents\skills\hetong-cr
 - 单独运行Python工具时可用当前进程的`CONTACT_OFFICE_VENV`和`CONTACT_LIBREOFFICE`指定路径。后者须指向可执行文件，不是目录。快审生成器使用隔离环境的`Scripts\python.exe`；不要仅因系统Python能启动就认定已装python-docx。
 - 路径包含中文或空格时使用引号；脚本使用参数数组传递，不拼接shell命令。
 - Windows采用系统字体；不要设置FONTCONFIG_FILE／FONTCONFIG_PATH。检查脚本要求样张实际使用宋体、黑体；缺失时从Windows“可选功能”的简体中文补充字体或有授权的字体来源补齐后重跑，不把Noto等替代字体称为宋体。
+- 字体补装依赖Windows Update和组织策略；长时间无进展或安装失败时，保留系统错误及DISM/CBS日志，交由系统管理员检查更新源。不要反复重试、擅自关闭组织策略或跳过字体检查。技能安装成功与Office版式检查通过是两个不同结果。
 - `doctor.json`定位Python、LibreOffice、PDF及中文文本层；`Word样张\smoke-result.json`定位修订、批注、快审和PDF字体。`setup-result.json`是本次整体结果；`native_word_wps_roundtrip`仍为未执行。
 - 关闭占用待处理文件的Word/WPS，或者处理独立副本。禁止为了“通过”删除历史修订、移除文档保护或降低检查。
 
