@@ -300,15 +300,15 @@ def word(data: dict) -> bytes:
         for attr in ('asciiTheme', 'hAnsiTheme', 'eastAsiaTheme', 'cstheme'):
             rf.attrib.pop(qn('w:' + attr), None)
 
-    fonts(doc.styles['Normal'], '宋体', 11)
+    fonts(doc.styles['Normal'], 'SimSun', 11)
     p = doc.styles['Normal'].paragraph_format
     p.line_spacing, p.space_after, p.widow_control = 1.25, Pt(5), True
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     for name, size, before, after in [('Title', 18, 0, 10), ('Heading 1', 13, 10, 5), ('Heading 2', 11, 6, 4)]:
-        fonts(doc.styles[name], '黑体', size, True)
+        fonts(doc.styles[name], 'SimHei', size, True)
         f = doc.styles[name].paragraph_format
         f.keep_with_next, f.space_before, f.space_after, f.line_spacing = True, Pt(before), Pt(after), 1.1
-    fonts(doc.styles['Caption'], '宋体', 9.5)
+    fonts(doc.styles['Caption'], 'SimSun', 9.5)
     doc.styles['Caption'].font.italic = False
     doc.styles['Caption'].paragraph_format.line_spacing = 1.2
     doc.styles['Caption'].paragraph_format.keep_with_next = False
@@ -326,14 +326,14 @@ def word(data: dict) -> bytes:
         props = OxmlElement('w:rPr')
         rf = OxmlElement('w:rFonts')
         for attr in ('ascii', 'hAnsi', 'eastAsia', 'cs'):
-            rf.set(qn('w:' + attr), '宋体')
+            rf.set(qn('w:' + attr), 'SimSun')
         props.append(rf)
         run.append(props)
         text = OxmlElement('w:t')
         text.text = source['title']
         run.append(text); link.append(run); p._p.append(link)
         p.add_run(f"（核验日：{source['checked_on']}）")
-    fonts(doc.styles['Footer'], '宋体', 9.5)
+    fonts(doc.styles['Footer'], 'SimSun', 9.5)
     p = sec.footer.paragraphs[0]
     p.style = doc.styles['Footer']; p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.add_run('第 ')

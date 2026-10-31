@@ -52,8 +52,8 @@ def run(out: Path, require_fonts: bool = False) -> dict:
     section.page_width, section.page_height = Mm(210), Mm(297)
     section.left_margin = section.right_margin = Mm(25.4)
     normal = doc.styles['Normal']
-    normal.font.name, normal.font.size = '宋体', Pt(10.5)
-    normal.element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:eastAsia'), '宋体')
+    normal.font.name, normal.font.size = 'SimSun', Pt(10.5)
+    normal.element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:eastAsia'), 'SimSun')
     doc.add_heading('虚构Word环境样张', 0)
     target = '本文件用于环境检查，不是实际合同。'
     doc.add_paragraph(target)

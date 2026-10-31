@@ -108,6 +108,7 @@ jobs:
       - name: Windows PowerShell 5.1 setup, Word redline and actual rendering
         shell: pwsh
         run: |
+          Get-Item "$env:WINDIR\Fonts\simsun.ttc", "$env:WINDIR\Fonts\simhei.ttf" -ErrorAction SilentlyContinue | Select-Object Name,Length
           $python = (Get-Command python).Source
           $venv = Join-Path $env:RUNNER_TEMP 'hetong runtime\venv'
           $output = Join-Path $env:RUNNER_TEMP 'hetong-win11-setup\合同 环境'

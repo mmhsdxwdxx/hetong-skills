@@ -167,7 +167,7 @@ class ReportTests(unittest.TestCase):
             normal = styles.find("w:style[@w:styleId='Normal']", NS)
             rf = normal.find('w:rPr/w:rFonts', NS)
             for attr in ('ascii', 'hAnsi', 'eastAsia', 'cs'):
-                self.assertEqual(rf.attrib['{' + NS['w'] + '}' + attr], '宋体')
+                self.assertEqual(rf.attrib['{' + NS['w'] + '}' + attr], 'SimSun')
             self.assertEqual(normal.find('w:rPr/w:sz', NS).attrib['{' + NS['w'] + '}val'], '22')
             tree = ET.fromstring(z.read('word/document.xml'))
             self.assertEqual(len(tree.findall('.//w:br', NS)), 0)
