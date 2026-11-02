@@ -2,6 +2,10 @@
 
 `hetong-craft`是统一入口和甲乙方条款的唯一内容真源；`hetong-review`承接深度审核；`hetong-fast-xqy-v1`是按XQY八项框架及甲乙方立场交付宋体Word报告的快审子技能。三者共同位于`.agents/skills/`。独立`hetong-server`已撤并，不再维护或加载其副本。
 
+## Word文档默认用WPS打开
+
+`2.0.0-dev.5`起，三套技能需要打开、查看或在客户端验收Word文档时，默认使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。共用[客户端规则](hetong-craft/references/native-review-display.md)，不依赖未经核实的系统文件关联，不改操作系统默认设置；离线处理与LibreOffice无头预览保持原流程。
+
 ## Word审阅隐私铁律
 
 `2.0.0-dev.4`起，无论直接调用hetong系列技能还是仅借鉴其方法，Word批注、回复、修订文字及理由都不得转介另一份文件，不透露内部报告/底稿的名称、路径、链接或索引。意见须独立完整；报告与批注的对应关系只留在内部记录。规则真源见[审阅隐私](hetong-craft/references/review-privacy.md)。

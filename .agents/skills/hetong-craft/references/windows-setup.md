@@ -1,6 +1,6 @@
 # Windows 11安装、升级与Office检查
 
-适用于本地Windows 11和PowerShell 5.1／7。Word正文由Python处理；LibreOffice负责转换和预览，Word/WPS客户端负责最终原生显示验证。无需WSL，也不要执行macOS的brew、textutil或fontconfig修复命令。
+适用于本地Windows 11和PowerShell 5.1／7。Word正文由Python处理；LibreOffice负责转换和预览，WPS默认负责最终原生显示验证，客户端选择按[共用规则](native-review-display.md)执行。无需WSL，也不要执行macOS的brew、textutil或fontconfig修复命令。
 
 ## 首次安装：发给使用者
 
@@ -25,7 +25,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents\skills\hetong-cr
 
 脚本安装或更新锁定的Python依赖到`%LOCALAPPDATA%\contact-office\venv`；运行两级检查，保留JSON、虚构DOCX、PDF和页面图到当前项目`产出\环境检查-时间戳-随机标识\`。失败返回非零状态，不把只生成文件当成功。它不重启Codex、Word或LibreOffice界面，不通知或刷新已有线程。
 
-3. 成功后新开“合同”项目会话。用Word/WPS打开`Word样张`里的修订批注稿和快审报告，检查所有标记、批注选区、中文字体和分页；在临时副本中接受／拒绝修订并另存。该步骤是客户端验证，不能由PDF或CI代替。
+3. 成功后新开“合同”项目会话。用WPS打开`Word样张`里的修订批注稿和快审报告，检查所有标记、批注选区、中文字体和分页；在临时副本中接受／拒绝修订并另存。只有本次明确指定Microsoft Word程序时才改用它；WPS不可用时说明缺口，不自动切换。该步骤是客户端验证，不能由PDF或CI代替。
 
 ## 日后升级
 

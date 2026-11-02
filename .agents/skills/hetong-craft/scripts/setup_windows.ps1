@@ -122,7 +122,7 @@ function Invoke-Setup {
         & $officePython (Join-Path $PSScriptRoot 'office_smoke.py') --out (Join-Path $OutputDirectory 'Word样张') --require-fonts
         if ($LASTEXITCODE -ne 0) { throw 'Word修订/批注/快审或宋体黑体检查失败；查看Word样张\smoke-result.json。' }
         $result.ok = $true
-        Write-Host "检查通过。请用Word/WPS打开保留样张，人工核对批注、修订及分页：$OutputDirectory"
+        Write-Host "检查通过。请默认用WPS打开保留样张，人工核对批注、修订及分页：$OutputDirectory"
         Write-Host '未刷新已有线程；新开项目会话使用新版。'
     } catch {
         $result['error'] = $_.Exception.Message

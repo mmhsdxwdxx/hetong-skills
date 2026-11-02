@@ -39,8 +39,8 @@ WPS/Word 界面不得并发写入。子代理不再嵌套委派。输出另存�
 
 工具分工沿用 [普通 DOCX 操作](docx-workflow.md)、[红线与批注](docx-redline.md)、
 [Word 深读](word-deep-read.md) 和 [Office 精修与预览](office-workflow.md)：
-Python 做精确修改，LibreOffice 批量转换/渲染，WPS/Word 做必要的目标软件验证；不逐处启动 GUI。
-如用户明确要求通过 WPS 操作，按其指定方式执行。保留已有预演、验证及只读约束，不因委派降低门槛。
+Python 做精确修改，LibreOffice 批量转换/渲染，默认由WPS完成必要的文档打开与客户端验证；不逐处启动 GUI。
+交接包未指定客户端时按[默认打开程序规则](native-review-display.md)使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。保留已有预演、验证及只读约束，不因委派降低门槛。
 
 ## 回执与主 Agent 验收
 
