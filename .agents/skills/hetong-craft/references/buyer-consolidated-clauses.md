@@ -7,7 +7,7 @@
 | 条款种类 | 条款数量 | 正文 |
 |---|---:|---|
 | 保交条款 | 3 | [打开](clauses/buyer/保交条款.md) |
-| 必要条款 | 11 | [打开](clauses/buyer/必要条款.md) |
+| 必要条款 | 12 | [打开](clauses/buyer/必要条款.md) |
 | 一般条款 | 4 | [打开](clauses/buyer/一般条款.md) |
 | 其他条款 | 1 | [打开](clauses/buyer/其他条款.md) |
 | 共管条款 | 1 | [打开](clauses/buyer/共管条款.md) |
@@ -36,5 +36,6 @@
 | M18 | 保函公示、查询与违约责任 | 必要条款 |
 | M19 | 海关要求下的附件调整 | 必要条款 |
 | M20 | 政策因素与不可抗力的边界 | 一般条款 |
+| M21 | 廉洁合作及责任承担 | 必要条款 |
 
 维护索引为[buyer-clause-catalog.json](buyer-clause-catalog.json)，不存放完整正文。修改正文可直接编辑分类Markdown；新增、改名或移动条款后执行公开`reindex`命令更新索引。

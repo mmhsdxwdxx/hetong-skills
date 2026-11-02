@@ -18,13 +18,13 @@ class BuyerClauseSelectionTests(unittest.TestCase):
         self.catalog, self.digest = MODULE.load_catalog(MODULE.DEFAULT_CATALOG)
 
     def test_source_coverage_and_same_category_merges(self):
-        self.assertEqual(len(self.catalog['sources']), 24)
-        self.assertEqual(len(self.catalog['modules']), 20)
+        self.assertEqual(len(self.catalog['sources']), 25)
+        self.assertEqual(len(self.catalog['modules']), 21)
         groups = {m['id']: m['source_ids'] for m in self.catalog['modules'] if len(m['source_ids']) > 1}
         self.assertEqual(groups, {'M01': ['A01', 'A07'], 'M03': ['A03', 'A09'], 'M06': ['A06', 'A21', 'A22']})
 
     def test_each_category_has_expected_modules(self):
-        expected = {'保交条款': 3, '必要条款': 11, '一般条款': 4, '其他条款': 1, '共管条款': 1}
+        expected = {'保交条款': 3, '必要条款': 12, '一般条款': 4, '其他条款': 1, '共管条款': 1}
         for category, count in expected.items():
             with self.subTest(category=category):
                 modules, result = MODULE.select_categories(self.catalog, [category], self.digest)
@@ -89,13 +89,15 @@ class BuyerClauseSelectionTests(unittest.TestCase):
             self._load_modified(lambda data: data['modules'].pop())
 
     def test_new_category_is_data_driven(self):
+        source_id = f"A{max(int(x['id'][1:]) for x in self.catalog['sources']) + 1:02d}"
+        module_id = f"M{max(int(x['id'][1:]) for x in self.catalog['modules']) + 1:02d}"
         def change(data):
             data['categories'].append('项目自定')
-            data['sources'].append({'id': 'A25', 'title': '虚构测试', 'category': '项目自定'})
-            data['modules'].append({'id': 'M21', 'source_ids': ['A25'], 'title': '虚构测试', 'category': '项目自定', 'essential': '测试要求', 'example': '测试范例', 'action': 'clause_example'})
+            data['sources'].append({'id': source_id, 'title': '虚构测试', 'category': '项目自定'})
+            data['modules'].append({'id': module_id, 'source_ids': [source_id], 'title': '虚构测试', 'category': '项目自定', 'essential': '测试要求', 'example': '测试范例', 'action': 'clause_example'})
         catalog, _ = self._load_modified(change)
         modules, _ = MODULE.select_categories(catalog, ['项目自定'])
-        self.assertEqual([m['id'] for m in modules], ['M21'])
+        self.assertEqual([m['id'] for m in modules], [module_id])
 
     def test_deletion_directives_keep_distinct_categories(self):
         modules, result = MODULE.select_categories(self.catalog, ['其他条款'])

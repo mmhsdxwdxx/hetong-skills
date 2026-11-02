@@ -12,7 +12,7 @@
 
 | 我方角色 | 当前条款及调用方法 |
 |---|---|
-| 向上游采购的买方 | [类别选择流程](buyer-category-selection.md) → `../scripts/buyer_clause_select.py list/select` → 本次选中条款；[派生索引](buyer-clause-catalog.json)由A01—A24整合成M01—M20，保留全部来源映射。 |
+| 向上游采购的买方 | [类别选择流程](buyer-category-selection.md) → `../scripts/buyer_clause_select.py list/select` → 本次选中条款；[派生索引](buyer-clause-catalog.json)保留原A01—A24至M01—M20的映射，新增A25/M21后共21项。 |
 | 销售或交付的卖方 | [乙方B01—B11](seller-baselines.md)，结合[乙方使用说明](seller-clause-guidance.md)逐项核对适用性。按用户改稿，B01—B09、B11为必要条款，B10为其他条款。 |
 
 甲乙方条款按本次实际类别选择；甲方为保交、必要、一般、其他、共管，乙方当前有必要与其他两类；未选类别不自动追加或删除，也不免除对原合同已有文字的法律、数字与逻辑检查。A02和A24保持各自类别中的删除指引，不恢复旧范例。旧完整预览路径现在仅作分类索引，不能代替本次选择。正文按一类一个Markdown文件维护，JSON为可重新生成的索引；纯正文修改不要求改动SKILL.md。

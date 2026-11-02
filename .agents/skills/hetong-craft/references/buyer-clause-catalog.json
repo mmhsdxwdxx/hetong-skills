@@ -175,6 +175,11 @@
       "id": "A24",
       "title": "政策因素与不可抗力的边界",
       "category": "一般条款"
+    },
+    {
+      "id": "A25",
+      "title": "廉洁合作及责任承担",
+      "category": "必要条款"
     }
   ],
   "modules": [
@@ -381,6 +386,16 @@
       ],
       "action": "delete_instruction",
       "file": "clauses/buyer/一般条款.md"
+    },
+    {
+      "id": "M21",
+      "title": "廉洁合作及责任承担",
+      "category": "必要条款",
+      "source_ids": [
+        "A25"
+      ],
+      "action": "clause_example",
+      "file": "clauses/buyer/必要条款.md"
     }
   ]
 }

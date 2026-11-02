@@ -37,6 +37,18 @@ class ClauseLibraryTests(unittest.TestCase):
                 self.assertNotIn('essential', item)
                 self.assertNotIn('example', item)
 
+    def test_integrity_clause_is_shared_and_exported_for_both_sides(self):
+        examples = []
+        for catalog, ident in ((self.buyer, 'M21'), (self.seller, 'B02')):
+            data, digest = load_catalog(catalog)
+            modules, selection = select_categories(data, ['必要条款'], digest)
+            clause = next(item for item in modules if item['id'] == ident)
+            self.assertIn(clause['example'], render_modules(modules, selection))
+            examples.append(clause['example'])
+            others, _ = select_categories(data, ['其他条款'], digest)
+            self.assertNotIn(ident, {item['id'] for item in others})
+        self.assertEqual(examples[0], examples[1])
+
     def test_seller_user_categories_and_exact_selection(self):
         data, sha = load_catalog(self.seller)
         self.assertEqual(len(data['modules']), 11)
