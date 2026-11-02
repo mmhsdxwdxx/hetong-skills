@@ -7,6 +7,8 @@
 [红线与批注流程](docx-redline.md)及独立的 `hetong_redline.py`。**禁止**用文本替换工具（sed 等）直接改 docx
 二进制/XML——会踩 run 边界与命名空间的坑。
 
+需要打开文档或做客户端验收时，按[默认打开程序规则](native-review-display.md)使用WPS；“Word文档”不表示指定Microsoft Word程序。
+
 ## 一、纪律（每次动手前默诵）
 
 1. **先提取留档**：`extract` 存一份改动前文本，作为 diff 基准与回滚参考。
