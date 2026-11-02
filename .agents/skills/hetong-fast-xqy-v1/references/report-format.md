@@ -38,7 +38,7 @@
 
 ## 命令行为
 
-默认使用`build_bundle.py`生成两份Word，并用同一`issues`数据建立报告、批注和映射。事项`section`决定其在八项或框架外问题下的位置；建议修订、履约注意及待核实分开标记。新任务的详细修订建议放`issues.suggestion`，不要只藏在无编号`sample`中。
+默认使用`build_bundle.py`生成两份Word，并用同一`issues`数据建立报告、批注和映射。事项`section`决定其在八项或框架外问题下的位置；建议修订、履约注意及待核实分开标记。新任务的详细修订建议放`issues.suggestion`，不要只藏在无编号`sample`中。`comment_summary`必须独立完整，不含内部文件指引和索引；生成器不再附加报告名或R号。报告与Word批注的关联仅存内部映射。
 
 以下`build_report.py`只用于用户明确只要报告或兼容旧输入：
 

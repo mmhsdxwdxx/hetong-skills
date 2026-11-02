@@ -58,16 +58,20 @@ def resolve_source(source_json, data):
     return path
 
 
-def comment_text(issue, report_name):
-    section = '框架外问题' if issue['section'] == 'extra' else f"第{issue['section']}项"
+def comment_text(issue):
     kind = report.ISSUE_TYPES[issue['type']]
     if issue['type'] == 'attention':
         kind += '（正文保留）'
     summary = issue['comment_summary'].rstrip('。；')
-    return f"{issue['id']}｜{kind}：{summary}。详见《{report_name}》{section} {issue['id']}。"
+    text = f"{kind}：{summary}。"
+    try:
+        engine.require_review_privacy(text, '新增Word批注')
+    except ValueError as exc:
+        raise report.ReportError(str(exc)) from None
+    return text
 
 
-def comment_plan(ctx, data, report_name):
+def comment_plan(ctx, data):
     grouped = {}
     for issue in data['issues']:
         if not issue.get('anchors'):
@@ -89,7 +93,7 @@ def comment_plan(ctx, data, report_name):
         ids = list(group['issues'])
         edits.append({'id': '+'.join(ids) + '@' + para_id, 'para': para_id,
                       'old': group['para'].text[group['start']:group['end']],
-                      'comment': '\n'.join(comment_text(i, report_name) for i in group['issues'].values())})
+                      'comment': '\n'.join(comment_text(i) for i in group['issues'].values())})
         mappings.append({'para': para_id, 'issue_ids': ids, 'anchor_text': edits[-1]['old']})
     plan = engine.build_plan(ctx, edits) if edits else None
     if plan and any(op['kind'] != 'comment' for op in plan['ops']):
@@ -138,7 +142,7 @@ def prepare(source_json, out_dir):
         raise report.ReportError('交付不得覆盖源文件')
     author = engine.validate_author(cfg.get('author', '合同审阅'))
     ctx = engine.load_context(str(source), for_write=True)
-    plan, mappings = comment_plan(ctx, data, report_name)
+    plan, mappings = comment_plan(ctx, data)
     return data, source, report_name, comments_name, author, ctx, plan, mappings
 
 
@@ -212,8 +216,8 @@ def verify_bundle(directory):
         for mapping in manifest['mappings']:
             body = comments.get(str(mapping['word_comment_id']), '')
             for code in mapping['issue_ids']:
-                if code not in issues or comment_text(issues[code], manifest['report']).replace('\n', '') not in body:
-                    raise report.ReportError('报告与原生批注的R编号或说明未对应')
+                if code not in issues or comment_text(issues[code]).replace('\n', '') not in body:
+                    raise report.ReportError('内部事项映射与原生批注说明未对应')
                 linked.add(code)
         if linked != set(issues):
             raise report.ReportError('存在未对应批注的报告事项')

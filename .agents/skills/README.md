@@ -2,7 +2,13 @@
 
 `hetong-craft`是统一入口和甲乙方条款的唯一内容真源；`hetong-review`承接深度审核；`hetong-fast-xqy-v1`是按XQY八项框架及甲乙方立场交付宋体Word报告的快审子技能。三者共同位于`.agents/skills/`。独立`hetong-server`已撤并，不再维护或加载其副本。
 
+## Word审阅隐私铁律
+
+`2.0.0-dev.4`起，无论直接调用hetong系列技能还是仅借鉴其方法，Word批注、回复、修订文字及理由都不得转介另一份文件，不透露内部报告/底稿的名称、路径、链接或索引。意见须独立完整；报告与批注的对应关系只留在内部记录。规则真源见[审阅隐私](hetong-craft/references/review-privacy.md)。
+
 ## 目录与职责
+
+当前开发版见[VERSION](VERSION)。`2.0.0-dev.3`新增[下游保函责任原则](hetong-craft/references/downstream-guarantee-policy.md)，三个技能共同引用：下游我方供货时，罚则以保函金额覆盖、出险走保函兑付、不另退预付款、不沿用历史比例罚则。[启用记录](hetong-craft/references/downstream-guarantee-policy.json)记载版本；新旧线程后续加载均适用，不按创建时间隔离，不批量发送刷新指令或唤醒已有聊天。本分支提供开发试用源码，不等同于发布正式标签或更新同事安装包。
 
 ```text
 .agents/skills/
@@ -55,7 +61,7 @@ PiDeck需在本仓库根目录启动新会话并允许项目扩展；从未加�
 - `xqy快审，合同位置：……。`（或显式`$hetong-fast-xqy-v1`／Claude的`/hetong-fast-xqy-v1`）
 - `xqy快审，站乙方立场，合同位置：……。`（在对应论述中突出本方固定条款）
 
-XQY快审保留八项顺序，按本次甲方／乙方及实际买卖角色切换方向，并突出本方固定条款。默认交付两份Word：11pt宋体的详细审核报告，直接给出文字修订建议；保留原稿正文及历史的原生批注副本，简述注意或修订点。两份共用R编号，批注指向报告的对应详细项。遵守已有类别选择／排除，不弹整套问卷、不自动改写正文。普通审核仍按原流程执行。详见[快审子技能](hetong-fast-xqy-v1/SKILL.md)。
+XQY快审保留八项顺序，按本次甲方／乙方及实际买卖角色切换方向，并突出本方固定条款。默认交付两份Word：11pt宋体的详细审核报告，直接给出文字修订建议；保留原稿正文及历史的原生批注副本，简述注意或修订点。两份在内部按R编号映射；批注直接写清意见，不显示内部编号或指向报告。遵守已有类别选择／排除，不弹整套问卷、不自动改写正文。普通审核仍按原流程执行。详见[快审子技能](hetong-fast-xqy-v1/SKILL.md)。
 
 甲方按[类别选择](hetong-craft/references/buyer-category-selection.md)多选，乙方通过同一受理核心选择本方现有类别，再读取选中条款。当前[条款目录](hetong-craft/references/buyer-clause-catalog.json)把A01—A24来源整合为20项，按保交、必要、一般、其他、共管分类；不默认全选，不自动带入未选类别。乙方B01—B11及说明也在craft中，按用户逐条改稿分为必要10项、其他1项。内容以craft为准，review不复制第二份。
 
@@ -71,7 +77,7 @@ XQY快审保留八项顺序，按本次甲方／乙方及实际买卖角色切�
 
 ## 维护与验证
 
-Windows使用[安装、升级与检查流程](hetong-craft/references/windows-setup.md)。技能、Python依赖、LibreOffice、字体及原生Word/WPS分别验证；PowerShell入口不刷新已有线程。
+Windows使用[安装、升级与检查流程](hetong-craft/references/windows-setup.md)。安装技能不自动安装Python／LibreOffice；PowerShell入口在明确给出安装开关时补系统软件，默认仅配置隔离依赖并检查，`-CheckOnly`不调用包管理器。字体按系统分支处理，保留虚构样张，不刷新已有线程。
 
 保持相对引用有效，真实合同和任务成果不得混入技能包。Office环境放在用户数据或任务产出目录，技能中不放缓存、锁文件或虚拟环境。每次改动后运行：
 

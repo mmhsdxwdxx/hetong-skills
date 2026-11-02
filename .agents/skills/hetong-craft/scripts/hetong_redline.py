@@ -83,6 +83,11 @@ from xml.parsers.expat import ExpatError
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import quoteattr
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if _SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPT_DIR)
+from review_privacy import privacy_findings, require_review_privacy
+
 # Windows 控制台默认编码可能不是 UTF-8；命令行输出统一为 UTF-8。
 for _stream in (sys.stdout, sys.stderr):
     try:
@@ -1130,6 +1135,12 @@ def normalize_edits(edits):
                 raise InputError(
                     "edits[%d] 仅批注不需要 broad_reason" % idx
                 )
+        for key in ("new", "reason", "comment"):
+            if key in item:
+                try:
+                    require_review_privacy(item[key], "edits[%d].%s" % (idx, key))
+                except ValueError as exc:
+                    raise InputError(str(exc)) from None
         normalized.append(item)
     return normalized
 
@@ -2094,6 +2105,12 @@ def build_result(ctx, plan, author, timestamp=None):
     comments_data = []
     stats: dict[str, Any] = {"revisions": 0, "comments": 0}
     for op in plan["ops"]:
+        for key in ("new", "reason", "comment"):
+            if key in op:
+                try:
+                    require_review_privacy(op[key], "操作 %s 的%s" % (op["id"], key))
+                except ValueError as exc:
+                    raise InputError(str(exc)) from None
         para = ctx.by_id.get(op["para"])
         if para is None:
             raise InputError("段落 %s 不存在" % op["para"])
@@ -2896,6 +2913,18 @@ def verify_core(input_pkg, result_pkg, plan):
     if not ids_unique:
         errors.append("新增修订/批注 ID 存在重复")
     checks["new_ids_unique"] = ids_unique
+
+    privacy_errors = []
+    for cid in new_comment_ids:
+        if privacy_findings(result_comments[cid]["text"]):
+            privacy_errors.append("新增批注 %s 含内部材料引用线索" % cid)
+    for node in iter_elements_in_order(result_doc.documentElement):
+        if local_name(node) in {"ins", "moveTo"} and attr_local(node, "id") in new_rev_ids:
+            inserted = "".join(text_of(t) for t in iter_elements_in_order(node) if local_name(t) == "t")
+            if privacy_findings(inserted):
+                privacy_errors.append("新增修订 %s 含内部材料引用线索" % attr_local(node, "id"))
+    errors.extend(privacy_errors)
+    checks["review_privacy"] = not privacy_errors
 
     result = {"authors": set()}
     rev_errors = _check_new_revision_structure(

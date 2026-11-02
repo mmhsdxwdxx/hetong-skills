@@ -48,7 +48,7 @@ def make_case(root):
          'original_excerpt':'乙方收到货款后30日内开具发票。',
          'detail':'原稿仅列开票时间，未说明逾期或不合格发票的处理。以下内容是拟议方案，参数尚未确认。',
          'suggestion':'建议替换为：乙方应在收到对应货款后【待确认：期限】内交付合法有效发票；逾期按【待确认：基数及比例】承担责任，错误发票应及时更正。',
-         'comment_summary':'开票条款缺少逾期及更正机制，建议按报告文本完善。',
+         'comment_summary':'开票条款缺少逾期及更正机制，建议明确相应责任和处理期限。',
          'anchors':[{'para':'RL0002','text':'乙方收到货款后30日内开具发票。'}]},
         {'id':'R-002','section':5,'type':'revise','title':'区分外观与性能验收','location':'验收条款',
          'detail':'到货当场难以发现全部内部缺陷，原稿将未当场异议等同全面合格，影响后续质量救济。',
@@ -91,9 +91,13 @@ class BundleTests(unittest.TestCase):
             comments = ET.fromstring(z.read('word/comments.xml'))
             text = ''.join(comments.itertext())
             for issue in self.data['issues']:
-                self.assertIn(issue['id'], text)
+                self.assertNotIn(issue['id'], text)
                 self.assertIn(issue['comment_summary'], text)
-            self.assertIn(result['report'], text)
+            self.assertNotIn(result['report'], text)
+            self.assertNotIn('详见', text)
+            self.assertNotIn('报告', text)
+            self.assertEqual({i for m in result['mappings'] for i in m['issue_ids']},
+                             {i['id'] for i in self.data['issues']})
             root = ET.fromstring(z.read('word/document.xml'))
             self.assertEqual(len(root.findall('.//w:ins', NS)), 0)
             self.assertEqual(len(root.findall('.//w:del', NS)), 0)
@@ -124,7 +128,7 @@ class BundleTests(unittest.TestCase):
         with self.assertRaises(bundle.report.ReportError): bundle.build(self.input, self.out)
         self.assertFalse(self.out.exists())
 
-    def test_two_issues_same_paragraph_grouped_with_both_references(self):
+    def test_two_issues_same_paragraph_keep_private_mapping(self):
         issue = deepcopy(self.data['issues'][0]); issue['id']='R-004'; issue['type']='attention'
         issue['anchors']=[{'para':'RL0002','text':'收到货款'}]
         issue['comment_summary']='留存到款证明并确认开票起算。'
@@ -133,6 +137,17 @@ class BundleTests(unittest.TestCase):
         self.assertEqual(result['comment_count'],3)
         self.assertEqual(result['mappings'][0]['issue_ids'],['R-001','R-004'])
         self.assertTrue(bundle.verify_bundle(self.out)['ok'])
+
+    def test_private_document_referral_rejected_before_any_output(self):
+        for summary in ['详见《内部审核报告.docx》第二项。', '建议按报告文本完善。',
+                        '请打开 /Users/example/private-review.md 核对。', '请按Q-002修改。']:
+            with self.subTest(summary=summary):
+                data=deepcopy(self.data);data['issues'][0]['comment_summary']=summary
+                save_case(self.input,data)
+                for dry_run in (True,False):
+                    with self.assertRaises(bundle.report.ReportError):
+                        bundle.build(self.input,self.out,dry_run)
+                    self.assertFalse(self.out.exists())
 
     def test_one_issue_multiple_anchors_keeps_one_report_id(self):
         self.data['issues'][0]['anchors'].append({'para':'RL0003','text':'序列号清单'})
