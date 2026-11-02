@@ -2,6 +2,10 @@
 
 `hetong-craft`是统一入口和甲乙方条款的唯一内容真源；`hetong-review`承接深度审核；`hetong-fast-xqy-v1`是按XQY八项框架及甲乙方立场交付宋体Word报告的快审子技能。三者共同位于`.agents/skills/`。独立`hetong-server`已撤并，不再维护或加载其副本。
 
+## 双向廉洁合作条款
+
+`2.0.0-dev.6`起，甲方新增M21/A25，乙方更新B02，均归入必要条款并采用同一份双方对等正文：禁止商业贿赂、依法认定人员行为归责、不为他方违法行为担保或代偿、区分正常交易与违法参与，并保留受影响部分解除及损失追偿。
+
 ## Word文档默认用WPS打开
 
 `2.0.0-dev.5`起，三套技能需要打开、查看或在客户端验收Word文档时，默认使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。共用[客户端规则](hetong-craft/references/native-review-display.md)，不依赖未经核实的系统文件关联，不改操作系统默认设置；离线处理与LibreOffice无头预览保持原流程。
@@ -67,7 +71,7 @@ PiDeck需在本仓库根目录启动新会话并允许项目扩展；从未加�
 
 XQY快审保留八项顺序，按本次甲方／乙方及实际买卖角色切换方向，并突出本方固定条款。默认交付两份Word：11pt宋体的详细审核报告，直接给出文字修订建议；保留原稿正文及历史的原生批注副本，简述注意或修订点。两份在内部按R编号映射；批注直接写清意见，不显示内部编号或指向报告。遵守已有类别选择／排除，不弹整套问卷、不自动改写正文。普通审核仍按原流程执行。详见[快审子技能](hetong-fast-xqy-v1/SKILL.md)。
 
-甲方按[类别选择](hetong-craft/references/buyer-category-selection.md)多选，乙方通过同一受理核心选择本方现有类别，再读取选中条款。当前[条款目录](hetong-craft/references/buyer-clause-catalog.json)把A01—A24来源整合为20项，按保交、必要、一般、其他、共管分类；不默认全选，不自动带入未选类别。乙方B01—B11及说明也在craft中，按用户逐条改稿分为必要10项、其他1项。内容以craft为准，review不复制第二份。
+甲方按[类别选择](hetong-craft/references/buyer-category-selection.md)多选，乙方通过同一受理核心选择本方现有类别，再读取选中条款。当前[条款目录](hetong-craft/references/buyer-clause-catalog.json)保留原A01—A24的20项整合条款，新增M21/A25后共21项，按保交、必要、一般、其他、共管分类；不默认全选，不自动带入未选类别。乙方B01—B11及说明也在craft中，按用户逐条改稿分为必要10项、其他1项。内容以craft为准，review不复制第二份。
 
 [买卖条款使用指南](hetong-craft/references/trade-clause-guide.md)负责角色和适用边界。目录归并不把服务器品名、SN、压测等要求泛化为所有合同义务。类别选择不是商业条件确认，也不是追加或删除条款的授权。
 

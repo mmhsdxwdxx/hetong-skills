@@ -76,7 +76,7 @@ description: |
 已明确的修订范围与有效授权直接沿用，不重复确认。商业条件需要确认时用普通文字等待答复；
 仅当歧义实质影响范围或正确性时提问，继续不依赖答案的工作。
 
-**甲乙方条款统一由本技能管理。** 买卖合同需要调用预设条款时，读取[条款库与使用流程](references/trade-clause-guide.md)：甲乙方均先确定本次类别，再按所选范围读取分类Markdown正文。甲方保留A01—A24整合的20项，乙方保留B01—B11；JSON仅为派生索引，不维护另一份正文。条款内容以本技能内的资料为准，`hetong-review`仅引用，不再加载独立的`hetong-server`。
+**甲乙方条款统一由本技能管理。** 买卖合同需要调用预设条款时，读取[条款库与使用流程](references/trade-clause-guide.md)：甲乙方均先确定本次类别，再按所选范围读取分类Markdown正文。甲方保留原A01—A24整合的20项，新增M21/A25廉洁条款后共21项；乙方保留B01—B11；JSON仅为派生索引，不维护另一份正文。条款内容以本技能内的资料为准，`hetong-review`仅引用，不再加载独立的`hetong-server`。
 服务器、SN、压测等专用内容仍按实际标的适用，不因移入通用入口而自动套用于服务、租赁等其他合同。两个近似DOCX的额外核对可按[未留痕改动检查](references/hidden-change-review.md)调用本技能的`hidden_change.py`。
 
 新增批注须先按[批注触发标准](references/comment-policy.md)判断：仅命中固定条款且无需改动不批注；实际缺陷、需要增删修订和错别字按本次授权处理。
@@ -164,7 +164,7 @@ python3 $O render 产出/*.docx 产出/*.pptx --out 产出/_预览 --dpi 120
   的精确修改、渲染、缓存、效率与视觉验收
 - [Word 合同精细阅读](references/word-deep-read.md)：修订/批注、时间线、批注线程、
   条款业务变化链和证据分层
-- [甲乙方条款库](references/trade-clause-guide.md)：甲方类别多选、A01—A24来源与20项整合条款、乙方B01—B11；按实际交易适用
+- [甲乙方条款库](references/trade-clause-guide.md)：甲方类别多选、A01—A25来源与21项条款、乙方B01—B11；按实际交易适用
 - [未留痕改动检查](references/hidden-change-review.md)：两份近似DOCX的额外只读核对
 - [风险模式库](references/risk-patterns.md)：常见交易结构风险与合同对策
 - 模板资产：[统一审查报告](../hetong-review/assets/review-report-template.md) ·
