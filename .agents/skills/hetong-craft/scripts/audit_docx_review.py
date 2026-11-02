@@ -12,6 +12,11 @@ from pathlib import Path
 from typing import Any, cast
 from zipfile import BadZipFile, ZipFile
 
+_SCRIPT_DIR = str(Path(__file__).resolve().parent)
+if _SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPT_DIR)
+from review_privacy import privacy_findings
+
 W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 
 # Windows 控制台默认编码可能不是 UTF-8；命令行输出统一为 UTF-8。
@@ -288,6 +293,25 @@ def audit(final, before=None, author=None, comments_only=False):
                 errors.append(f'新增修订 {r["id"]} 作者不符：{r["author"]!r}')
     if comments_only and new_revisions:
         errors.append('仅批注模式新增了修订')
+    privacy = []
+    for comment in comments.values():
+        codes = privacy_findings(comment['text'])
+        if codes:
+            scope = 'new' if before and comment['new'] else 'historical' if before else 'unknown'
+            privacy.append({'kind': 'comment', 'id': comment['id'], 'scope': scope, 'codes': codes})
+    for revision in revisions:
+        if revision['kind'] not in {'ins', 'moveTo'}:
+            continue
+        codes = privacy_findings(revision['text'])
+        if codes:
+            scope = 'new' if before and revision['new'] else 'historical' if before else 'unknown'
+            privacy.append({'kind': revision['kind'], 'id': revision['id'], 'scope': scope, 'codes': codes})
+    for finding in privacy:
+        message = f"{finding['kind']} {finding['id']} 含内部材料引用线索（Word审阅隐私铁律）"
+        if finding['scope'] == 'new':
+            errors.append(message)
+        else:
+            warnings.append(message + '；历史/无基线内容须人工核对，不自动删除')
     if any('commentsExtended' in n or 'commentsIds' in n or 'commentsExtensible' in n for n in data):
         warnings.append('存在扩展/线程式批注；本工具不验证回复、解决状态及扩展 ID 关联')
     text_revisions = [r for r in new_revisions if not r['property_or_mark'] and r['text']]
@@ -300,11 +324,14 @@ def audit(final, before=None, author=None, comments_only=False):
                     'short_text_revision_candidates': sum(len(r['text']) <= 3 for r in text_revisions),
                     'long_text_revision_candidates': sum(len(r['text']) > 180 for r in text_revisions)},
         'errors': errors, 'warnings': warnings, 'package_diff': package_diff,
+        'review_privacy': {'findings': privacy, 'has_baseline': bool(before),
+                           'new_content_blocked': any(x['scope'] == 'new' for x in privacy)},
         'comments': list(comments.values()), 'revisions': revisions,
         'limits': ['仅基础结构和文本检查；不验证法律结论、语义粒度、Word界面或排版',
                    '未模拟接受/拒绝修订；未证明格式、域、嵌入内容及全部OOXML不变量',
                    '历史同ID改写会报告错误；无before时无法识别本次新增内容',
-                   '短/长候选是审阅线索，不是质量评分或自动缺陷判定']}
+                   '短/长候选是审阅线索，不是质量评分或自动缺陷判定',
+                   '隐私扫描只识别明显内部引用，仍须人工核对隐含泄露和历史残留']}
     return result
 
 

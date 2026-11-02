@@ -153,6 +153,41 @@ class ReviewAuditTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             audit(final)
 
+    def test_new_private_referral_split_across_runs_is_blocked(self):
+        before = self.package('before', '<w:p>' + run('付款期限。') + '</w:p>')
+        body = '<w:p>' + span(run('付款期限。')) + '</w:p>'
+        text = '<w:comment w:id="1" w:author="YYX"><w:p>' + run('详见《内部') + run('审核报告.docx》。') + '</w:p></w:comment>'
+        final = self.package('final', body, text)
+        result = audit(final, before, 'YYX')
+        self.assertTrue(result['review_privacy']['new_content_blocked'])
+        self.assertTrue(any('隐私铁律' in e for e in result['errors']))
+
+    def test_new_revision_private_referral_is_blocked(self):
+        before = self.package('before', '<w:p>' + run('付款期限。') + '</w:p>')
+        final = self.package('final', '<w:p>' + run('付款期限。') + rev('详见内部审核报告。') + '</w:p>')
+        result = audit(final, before, 'YYX')
+        self.assertTrue(result['review_privacy']['new_content_blocked'])
+
+    def test_historical_referral_is_reported_without_rewriting(self):
+        body = '<w:p>' + span(run('付款期限。')) + '</w:p>'
+        before = self.package('before', body, comment(text='详见《旧审核报告.docx》。'))
+        final = self.package('final', body, comment(text='详见《旧审核报告.docx》。'))
+        saved = final.read_bytes()
+        result = audit(final, before, 'YYX')
+        self.assertFalse(result['errors'])
+        self.assertFalse(result['review_privacy']['new_content_blocked'])
+        self.assertEqual(result['review_privacy']['findings'][0]['scope'], 'historical')
+        self.assertTrue(any('历史/无基线' in w for w in result['warnings']))
+        self.assertEqual(saved, final.read_bytes())
+
+    def test_no_baseline_does_not_claim_referral_is_new(self):
+        body = '<w:p>' + span(run('付款期限。')) + '</w:p>'
+        final = self.package('final', body, comment(text='详见《旧审核报告.docx》。'))
+        result = audit(final)
+        self.assertFalse(result['review_privacy']['has_baseline'])
+        self.assertFalse(result['review_privacy']['new_content_blocked'])
+        self.assertEqual(result['review_privacy']['findings'][0]['scope'], 'unknown')
+
 
 if __name__ == '__main__':
     unittest.main()

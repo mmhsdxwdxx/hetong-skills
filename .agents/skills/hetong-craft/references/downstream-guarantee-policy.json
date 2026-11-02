@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "policy_id": "downstream-guarantee-20261101",
+  "series_version": "2.0.0-dev.3",
+  "status": "active",
+  "activated_at": "2026-11-01T07:57:41+00:00",
+  "scope": "all_threads_on_next_skill_load",
+  "broadcast_refresh": false,
+  "reference": "downstream-guarantee-policy.md"
+}

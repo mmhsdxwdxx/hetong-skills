@@ -1780,5 +1780,72 @@ class TestStrictNamespaceResolution(Base):
         )
 
 
+class TestReviewPrivacy(Base):
+    def test_comments_reject_referrals_and_paths_before_writing(self):
+        source = self.write('private.docx', p(r('付款期限为十日。')))
+        before = cr.sha256_file(source)
+        for text in ['详见《内部审核报告.docx》第2项。', '建议参见另一份文件。',
+                     '请按报告文本完善。', '请按Q-002修改。',
+                     '请查阅内部底稿。', 'See the internal report for details.',
+                     '请打开 /Users/example/private.md 核对。',
+                     '详 见《审核报告．ＤＯＣＸ》。']:
+            with self.subTest(text=text):
+                ctx = cr.load_context(source, for_write=True)
+                with self.assertRaises(cr.InputError):
+                    cr.build_plan(ctx, [{'id':'one','para':'RL0001','old':'十日','comment':text}])
+                self.assertEqual(cr.sha256_file(source), before)
+
+    def test_revision_text_and_reason_are_both_guarded(self):
+        source = self.write('private.docx', p(r('付款期限为十日。')))
+        for key in ['new','reason']:
+            edit = {'id':'one','para':'RL0001','old':'十日','new':'五日','reason':'按确认期限调整。'}
+            edit[key] = '详见《另一份审核报告》'
+            with self.subTest(key=key), self.assertRaises(cr.InputError):
+                cr.build_plan(cr.load_context(source, for_write=True), [edit])
+
+    def test_public_clause_reference_and_law_name_are_allowed(self):
+        source = self.write('safe.docx', p(r('付款期限为十日。')))
+        ctx = cr.load_context(source, for_write=True)
+        plan = cr.build_plan(ctx, [{'id':'one','para':'RL0001','old':'十日','new':'五日',
+                                  'reason':'已按确认期限调整，请同步核对本合同第六条。《民法典》第五百零九条规定当事人应按约履行。'}])
+        blob, _ = cr.build_result(ctx, plan, '合同审阅')
+        checked = cr.verify_core(ctx.pkg, cr.package_from_bytes(blob, 'result.docx'), plan)
+        self.assertTrue(checked['ok'], checked)
+        self.assertTrue(checked['checks']['review_privacy'])
+
+    def test_deleting_source_reference_does_not_erase_history(self):
+        source = self.write('old.docx', p(r('详见《内部审核报告》。')))
+        ctx = cr.load_context(source, for_write=True)
+        plan = cr.build_plan(ctx, [{'id':'one','para':'RL0001','old':'详见《内部审核报告》。',
+                                  'new':'','reason':'删除不属于合同内容的内部文件指引。'}])
+        blob, _ = cr.build_result(ctx, plan, '合同审阅')
+        checked = cr.verify_core(ctx.pkg, cr.package_from_bytes(blob,'result.docx'), plan)
+        self.assertTrue(checked['ok'], checked)
+        self.assertIn('内部审核报告'.encode(), cr.package_from_bytes(blob,'result.docx').get('word/document.xml'))
+
+    def test_direct_builder_cannot_bypass_comment_guard(self):
+        source = self.write('safe.docx', p(r('付款期限为十日。')))
+        ctx = cr.load_context(source, for_write=True)
+        plan = cr.build_plan(ctx, [{'id':'one','para':'RL0001','old':'十日','comment':'请确认期限起点。'}])
+        plan['ops'][0]['comment'] = '详见《内部审核报告.docx》。'
+        with self.assertRaises(cr.InputError):
+            cr.build_result(ctx, plan, '合同审阅')
+
+    def test_verifier_flags_a_tampered_inserted_referral(self):
+        source = self.write('safe.docx', p(r('付款期限为十日。')))
+        ctx = cr.load_context(source, for_write=True)
+        plan = cr.build_plan(ctx, [{'id':'one','para':'RL0001','old':'十日','new':'五日','reason':'按确认期限调整。'}])
+        blob, _ = cr.build_result(ctx, plan, '合同审阅')
+        package = cr.package_from_bytes(blob, 'result.docx')
+        xml = package.get('word/document.xml')
+        self.assertIn('>五<'.encode(), xml)
+        tampered = cr.zip_bytes_from_package(package, {
+            'word/document.xml': xml.replace('>五<'.encode(), '>详见内部审核报告<'.encode(), 1)
+        }, {})
+        checked = cr.verify_core(ctx.pkg, cr.package_from_bytes(tampered,'tampered.docx'), plan)
+        self.assertFalse(checked['ok'])
+        self.assertFalse(checked['checks']['review_privacy'])
+
+
 if __name__ == "__main__":
     unittest.main()
