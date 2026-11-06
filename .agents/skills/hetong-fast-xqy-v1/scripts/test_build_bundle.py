@@ -195,7 +195,7 @@ class BundleTests(unittest.TestCase):
         self.assertTrue(bundle.verify_bundle(self.out)['ok'])
 
     def test_private_document_referral_rejected_before_any_output(self):
-        for summary in ['详见《内部审核报告.docx》第二项。', '建议按报告文本完善。',
+        for summary in ['详见《内部审核报告.docx》第二项。', '建议按报告文本完善。', '详见另附审核意见。',
                         '请打开 /Users/example/private-review.md 核对。', '请按Q-002修改。']:
             with self.subTest(summary=summary):
                 data=deepcopy(self.data);data['issues'][0]['comment_summary']=summary
