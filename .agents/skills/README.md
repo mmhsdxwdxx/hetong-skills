@@ -2,6 +2,10 @@
 
 `hetong-craft`是统一入口和甲乙方条款的唯一内容真源；`hetong-review`承接深度审核；`hetong-fast-xqy-v1`是按XQY八项框架及甲乙方立场交付宋体Word报告的快审子技能。Word文件操作统一调用`hetong-word`子技能。四者共同位于`.agents/skills/`。独立`hetong-server`已撤并，不再维护或加载其副本。
 
+## v2.0.2 审阅约束
+
+四个入口共同执行[统一审阅输出规则](hetong-word/references/review-rules.md)：固定条款命中不自动批注；意见通常一两句且不转介文件；双交付使用同一可见R问题编号；明确错误直接最小修订，中英以中文为准并同步；用户或流程要求简要报告时总篇幅最多2页，按实际渲染验页。明确只读/只批注和未确认商业条件仍受保护。
+
 ## Word操作与按需初始化
 
 `2.0.1`起，Word深读、修订、批注、审阅隐私、成品验证与共用Office运行时由[hetong-word](hetong-word/SKILL.md)统一维护。其他入口需要时明确调用该技能，调用不等于派发子代理。旧craft脚本和参考路径保留薄兼容入口。初始化默认只检测；基础操作不需要LibreOffice，生成与预览组件按需选装。此处为技能工作流初始化，不宣称宿主会自动执行安装钩子。
@@ -78,7 +82,7 @@ PiDeck需在本仓库根目录启动新会话并允许项目扩展；从未加�
 - `xqy快审，合同位置：……。`（或显式`$hetong-fast-xqy-v1`／Claude的`/hetong-fast-xqy-v1`）
 - `xqy快审，站乙方立场，合同位置：……。`（在对应论述中突出本方固定条款）
 
-XQY快审保留八项顺序，按本次甲方／乙方及实际买卖角色切换方向，并突出本方固定条款。默认交付两份Word：11pt宋体的详细审核报告，直接给出文字修订建议；保留原稿正文及历史的原生批注副本，简述注意或修订点。两份在内部按R编号映射；批注直接写清意见，不显示内部编号或指向报告。遵守已有类别选择／排除，不弹整套问卷、不自动改写正文。普通审核仍按原流程执行。详见[快审子技能](hetong-fast-xqy-v1/SKILL.md)。
+XQY快审保留八项顺序，按本次甲方／乙方及实际买卖角色切换方向，并突出本方固定条款。默认交付两份Word：11pt宋体的详细审核报告，直接给出文字修订建议；保留无须修改的原文及历史的修订批注副本，简述注意或修订点。两份在内部按R编号映射；批注直接写清意见，不显示内部编号或指向报告。遵守已有类别选择／排除，不弹整套问卷、一般建议不自动改写正文；明确错误按统一规则直接纠正。普通审核仍按原流程执行。详见[快审子技能](hetong-fast-xqy-v1/SKILL.md)。
 
 甲方按[类别选择](hetong-craft/references/buyer-category-selection.md)多选，乙方通过同一受理核心选择本方现有类别，再读取选中条款。当前[条款目录](hetong-craft/references/buyer-clause-catalog.json)保留原A01—A24的20项整合条款，新增M21/A25后共21项，按保交、必要、一般、其他、共管分类；不默认全选，不自动带入未选类别。乙方B01—B11及说明也在craft中，按用户逐条改稿分为必要10项、其他1项。内容以craft为准，review不复制第二份。
 
@@ -100,6 +104,7 @@ XQY快审保留八项顺序，按本次甲方／乙方及实际买卖角色切�
 
 ```bash
 python3 .agents/skills/hetong-word/scripts/test_init.py
+"$PY" .agents/skills/hetong-word/scripts/test_brief_report.py
 python3 .agents/skills/hetong-craft/scripts/test_hetong_redline.py
 python3 .agents/skills/hetong-craft/scripts/test_word_reader.py
 python3 .agents/skills/hetong-craft/scripts/test_office_kit.py

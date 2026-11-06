@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Publish a linked report and comments-only contract copy in one new directory."""
+"""Publish a numbered report and annotated copy, with explicit minimal corrections."""
 from __future__ import annotations
 
 import argparse
@@ -58,12 +58,12 @@ def resolve_source(source_json, data):
     return path
 
 
-def comment_text(issue):
+def comment_text(issue, numbered=True):
     kind = report.ISSUE_TYPES[issue['type']]
     if issue['type'] == 'attention':
         kind += '（正文保留）'
     summary = issue['comment_summary'].rstrip('。；')
-    text = f"{kind}：{summary}。"
+    text = (f"{issue['id']}｜" if numbered else "") + f"{kind}：{summary}。"
     try:
         engine.require_review_privacy(text, '新增Word批注')
     except ValueError as exc:
@@ -84,20 +84,40 @@ def comment_plan(ctx, data):
             if para.text.count(text) != 1:
                 raise report.ReportError(f"{issue['id']}锚文本须在指定段落中唯一命中：{anchor['para']}")
             start = para.text.index(text)
-            group = grouped.setdefault(para.pid, {'para': para, 'start': start, 'end': start + len(text), 'issues': {}})
+            group = grouped.setdefault(para.pid, {'para': para, 'start': start, 'end': start + len(text), 'issues': {}, 'replacements': []})
             group['start'] = min(group['start'], start)
             group['end'] = max(group['end'], start + len(text))
             group['issues'][issue['id']] = issue
+            if issue['type'] == 'correction':
+                replacement = (start, start + len(text), anchor['replacement'])
+                if any(start < old_end and old_start < start + len(text)
+                       for old_start, old_end, _ in group['replacements']):
+                    raise report.ReportError('纠错范围重叠，须先合并为唯一明确的目标文字')
+                group['replacements'].append(replacement)
     edits, mappings = [], []
+    intended = {pid: para.text for pid, para in ctx.by_id.items()}
     for para_id, group in grouped.items():
         ids = list(group['issues'])
-        edits.append({'id': '+'.join(ids) + '@' + para_id, 'para': para_id,
-                      'old': group['para'].text[group['start']:group['end']],
-                      'comment': '\n'.join(comment_text(i) for i in group['issues'].values())})
+        old = group['para'].text[group['start']:group['end']]
+        text = '\n'.join(comment_text(i) for i in group['issues'].values())
+        edit = {'id': '+'.join(ids) + '@' + para_id, 'para': para_id, 'old': old}
+        if group['replacements']:
+            new = old
+            for start, end, replacement in sorted(group['replacements'], reverse=True):
+                new = new[:start-group['start']] + replacement + new[end-group['start']:]
+            edit.update(new=new, reason=text)
+        else:
+            edit['comment'] = text
+        if 'new' in edit:
+            intended[para_id] = group['para'].text[:group['start']] + edit['new'] + group['para'].text[group['end']:]
+        edits.append(edit)
         mappings.append({'para': para_id, 'issue_ids': ids, 'anchor_text': edits[-1]['old']})
+    final_text = '\n'.join(intended.values())
+    for issue in data['issues']:
+        if issue.get('correction_basis') == 'bilingual_alignment' and issue['chinese_source'] not in final_text:
+            raise report.ReportError('中英同步缺少最终中文原文，须核对中文基准')
     plan = engine.build_plan(ctx, edits) if edits else None
-    if plan and any(op['kind'] != 'comment' for op in plan['ops']):
-        raise report.ReportError('双交付只允许批注，禁止正文替换或插入删除')
+    # Replacements are built only from explicit correction issues; general suggestions remain comments.
     return plan, mappings
 
 
@@ -133,7 +153,10 @@ def prepare(source_json, out_dir):
     source = resolve_source(source_json, data)
     cfg = data['bundle']
     report_name = filename(cfg.get('report_name'), '合同_v1_XQY审核报告.docx')
-    comments_name = filename(cfg.get('comments_name'), '合同_v1_XQY批注稿.docx')
+    has_corrections = any(i['type'] == 'correction' for i in data['issues'])
+    if has_corrections and cfg.get('comments_only'):
+        raise report.ReportError('本次明确只批注，不能执行纠错；请保留为建议事项')
+    comments_name = filename(cfg.get('comments_name'), '合同_v1_XQY修订批注稿.docx' if has_corrections else '合同_v1_XQY批注稿.docx')
     if report_name == comments_name:
         raise report.ReportError('审核报告与批注稿必须使用不同文件名')
     if out_dir.exists() or out_dir.is_symlink() or '原件' in out_dir.parts or '原件' in out_dir.resolve().parts:
@@ -152,7 +175,8 @@ def build(source_json, out_dir, dry_run=False):
     info = {'schema': 'hetong-fast-xqy-v1/bundle-1', 'dry_run': dry_run,
             'report': rname, 'comments': cname, 'issue_ids': [i['id'] for i in data['issues']],
             'comment_count': len(mappings), 'source_sha256': ctx.sha256,
-            'body_changes': 0, 'visual_verified': False}
+            'body_changes': sum(op['kind'] == 'replace' for op in plan['ops']) if plan else 0,
+            'comment_format': 'numbered-v2', 'visual_verified': False}
     if dry_run:
         return info
     report_blob = report.word(data)
@@ -160,8 +184,8 @@ def build(source_json, out_dir, dry_run=False):
     if plan:
         comments_blob, stats = engine.build_result(ctx, plan, author)
         checked = engine.verify_core(ctx.pkg, engine.package_from_bytes(comments_blob, cname), plan)
-        if not checked['ok'] or stats['new_revision_ids']:
-            raise report.ReportError('批注稿结构验证失败或出现正文修订，未发布')
+        if not checked['ok'] or (not info['body_changes'] and stats['new_revision_ids']):
+            raise report.ReportError('修订批注稿验证失败或出现未授权正文修订，未发布')
         for mapping, cid in zip(mappings, stats['new_comment_ids']):
             mapping['word_comment_id'] = cid
     else:
@@ -216,14 +240,14 @@ def verify_bundle(directory):
         for mapping in manifest['mappings']:
             body = comments.get(str(mapping['word_comment_id']), '')
             for code in mapping['issue_ids']:
-                if code not in issues or comment_text(issues[code]).replace('\n', '') not in body:
+                if code not in issues or comment_text(issues[code], numbered=manifest.get('comment_format') == 'numbered-v2').replace('\n', '') not in body:
                     raise report.ReportError('内部事项映射与原生批注说明未对应')
                 linked.add(code)
         if linked != set(issues):
             raise report.ReportError('存在未对应批注的报告事项')
     elif (directory / manifest['comments']).read_bytes() != source.read_bytes():
         raise report.ReportError('空事项批注副本与源文件不一致')
-    return {'ok': True, 'issue_ids': manifest['issue_ids'], 'comment_count': manifest['comment_count'], 'body_changes': 0}
+    return {'ok': True, 'issue_ids': manifest['issue_ids'], 'comment_count': manifest['comment_count'], 'body_changes': manifest.get('body_changes', 0)}
 
 
 def main():

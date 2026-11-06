@@ -20,7 +20,9 @@ HEADINGS = {
 }
 STATUSES = {'已具备', '部分具备', '缺失', '待核实', '不适用'}
 FIXED_STATUSES = {'符合', '部分符合', '缺失', '冲突', '待核实', '本次明确偏离'}
-ISSUE_TYPES = {'revise': '建议修订', 'attention': '履约注意', 'verify': '待核实'}
+ISSUE_TYPES = {'revise': '建议修订', 'attention': '履约注意', 'verify': '待核实', 'correction': '已修订'}
+CORRECTION_BASES = {'typo', 'grammar', 'plain_logic', 'verified_rule', 'bilingual_alignment'}
+MAX_COMMENT_SUMMARY_CHARS = 120
 CATALOG_DIR = Path(__file__).resolve().parents[2] / 'hetong-craft' / 'references'
 
 
@@ -73,10 +75,19 @@ def validate_issues(data: dict) -> None:
         if not ((type(section) is int and 1 <= section <= 8) or section == 'extra'):
             raise ReportError(f'{code}.section须为1—8或extra')
         if issue.get('type') not in ISSUE_TYPES:
-            raise ReportError(f'{code}.type须为revise、attention或verify')
+            raise ReportError(f'{code}.type须为revise、attention、verify或correction')
         for key in ('title', 'location', 'detail', 'suggestion', 'comment_summary'):
             required_text(issue, key, code)
         optional_texts(issue, ('original_excerpt',), code)
+        if len(issue['comment_summary']) > MAX_COMMENT_SUMMARY_CHARS:
+            raise ReportError(f'{code}.comment_summary超过120字符；请压缩为最短完整意见')
+        if issue['type'] == 'correction':
+            if issue.get('correction_basis') not in CORRECTION_BASES:
+                raise ReportError(f'{code}须声明明确纠错依据，不能自动执行一般商业建议')
+            if issue['correction_basis'] == 'verified_rule':
+                required_text(issue, 'verified_basis', code)
+            if issue['correction_basis'] == 'bilingual_alignment':
+                required_text(issue, 'chinese_source', code)
         anchors = issue.get('anchors', [])
         if not isinstance(anchors, list):
             raise ReportError(f'{code}.anchors须为数组')
@@ -84,6 +95,11 @@ def validate_issues(data: dict) -> None:
             if not isinstance(anchor, dict) or not re.fullmatch(r'RL\d{4,}', str(anchor.get('para', ''))):
                 raise ReportError(f'{code}批注锚点须使用实际inspect的RL编号')
             required_text(anchor, 'text', code + '.anchor')
+            if issue['type'] == 'correction':
+                if not isinstance(anchor.get('replacement'), str) or anchor['replacement'] == anchor['text']:
+                    raise ReportError(f'{code}纠错锚点须提供不同于原文的replacement；删除可用空字符串')
+            elif 'replacement' in anchor:
+                raise ReportError(f'{code}非纠错事项不得附带正文替换')
 
 
 def fixed_references(item: dict, data: dict) -> list[tuple[dict, dict]]:
@@ -219,7 +235,7 @@ def issue_blocks(data: dict, section: int | str) -> list[tuple[str, str, str]]:
             result.append(('p', '原文', issue['original_excerpt']))
         result.append(('p', '详细说明', issue['detail']))
         result.extend(fixed_blocks(issue, data))
-        label = '文字修订建议（未直接改原稿）' if issue['type'] == 'revise' else '注意事项／处理建议'
+        label = '文字修订建议（未直接改原稿）' if issue['type'] == 'revise' else '本轮明确纠错' if issue['type'] == 'correction' else '注意事项／处理建议'
         result.append(('p', label, issue['suggestion']))
     return result
 
@@ -255,7 +271,7 @@ def blocks(data: dict) -> list[tuple[str, str, str]]:
     result.append(('h1', '', '核验与待确认'))
     for key, label in [('coverage', '已核范围'), ('limitations', '范围限制'), ('pending', '待确认')]:
         result.append(('note', label, data['verification'][key]))
-    result.append(('note', '', '本报告仅供审阅；建议写法不代表双方已达成合意，不改变原合同。'))
+    result.append(('note', '', '本报告仅供审阅；建议写法不代表双方已达成合意；明确纠错以修订副本为准，原件保持不变。'))
     return result
 
 

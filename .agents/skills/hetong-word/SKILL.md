@@ -5,6 +5,9 @@ description: 处理合同 Word 文件的读取、修订历史深读、真实留�
 
 # 合同 Word 操作
 
+**v2.0.2审阅规则**：先执行[统一审阅输出规则](references/review-rules.md)。批注仅针对真实问题，通常一两句，不转介文件；双交付批注与详细意见使用同号。一般任务中的明确错误直接在副本批注并最小修订，中英对照以中文为准并同步英文；简要报告总篇幅不超过两页。本次明确只读/只批注限制及未确认商业条件仍须遵守。
+
+
 `hetong-craft`、`hetong-review` 和 `hetong-fast-xqy-v1` 共用的 Word 操作子技能。
 实际需要读取、生成、批注、修订或验证 Word 时加载，并向用户说明“本次使用 `hetong-word` 处理 Word 文件”。纯文字讨论无需加载。调用本技能不等于启动子代理；默认由当前主代理执行。
 
@@ -28,8 +31,8 @@ python3 <本技能>/scripts/init.py --profile core
 上游负责合同立场、事实、法律判断、条款及批注准确文字、已确认商业条件和允许操作。直接调用本技能也须有明确的操作范围；缺少的商业条件不得自行填写。
 
 - 源件只读、默认另存；保留既有修订、批注和样式，禁止为绕过工具限制接受/拒绝全部历史。
-- 沿用本次有效授权，不重复索要批准。审核默认只读；仅批注授权不允许改正文。真实合同的受理和类别选择仍使用 [craft 受理流程](../hetong-craft/references/host-intake.md)，XQY沿用其专用授权，不另造回执。
-- 执行[审阅隐私](references/review-privacy.md)：批注、回复、修订文字及理由独立完整，不含内部报告名称、路径、链接、编号或“详见/参见”。内部对应关系单独记录。
+- 沿用本次有效授权，不重复索要批准。一般审核可按统一规则纠正明确错误；本次明确只读或仅批注时不允许改正文。真实合同的受理和类别选择仍使用 [craft 受理流程](../hetong-craft/references/host-intake.md)，XQY沿用其专用授权，不另造回执。
+- 执行[审阅隐私](references/review-privacy.md)：批注、回复、修订文字及理由独立完整，不含内部报告名称、路径、链接或“详见/参见”。双交付允许独立完整意见前显示同一R编号；技术映射单独记录。
 - 新增批注仍由上游按[触发标准](../hetong-craft/references/comment-policy.md)判断。操作技能不增加新的审核意见或改写已定措辞。
 - 默认用 WPS 打开和原生验收，只有用户明确指定 Microsoft Word 程序时才使用它；见[客户端与显示](references/native-review-display.md)。不修改系统文件关联。
 
@@ -44,6 +47,7 @@ python3 <本技能>/scripts/init.py --profile core
 | 历史重叠、复杂结构、清洁稿派生 | [工具边界与替代路径](references/word-operation-paths.md) |
 | 两版未留痕改动 | [未留痕检查](references/hidden-change-review.md)，`scripts/hidden_change.py` |
 | 成品历史、锚点与包结构核对 | `scripts/audit_docx_review.py`；用 `--before` 指定基线 |
+| 简要报告两页检查 | `scripts/verify_brief_report.py --source 报告.docx --manifest 渲染清单.json`，核对实际PDF页数及指纹 |
 | 可选预览及共用 Office 工具 | [预览与 Office 工作流](references/office-workflow.md)，`scripts/office_kit.py` |
 
 仅加载本次需要的参考。含历史审阅的文件在编辑前核对原文、接受视图、标记视图、时间线和批注线程；这些分析视图不写回原件，作者活动时段不等于谈判轮次。

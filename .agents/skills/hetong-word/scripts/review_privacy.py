@@ -14,7 +14,7 @@ RULES = (
         r'(?:审核|审查|复核|风险分析)报告|内部(?:底稿|台账|核验记录)')),
     ('document_referral', re.compile(
         r'(?:详见|参见|参阅|另见|查阅|参考|参照|按照|根据|按|见)'
-        r'[^。；;!?！？]{0,80}(?:报告|另一份文件|另一份文档|其他文件|其他文档|修订说明|核验记录)|'
+        r'[^。；;!?！？]{0,80}(?:报告|另一份文件|另一份文档|其他文件|其他文档|修订说明|核验记录|(?:审核|审阅|审查|评审)意见|另附说明)|'
         r'(?:详见|参见|参阅|另见|查阅)[《“\"]|'
         r'(?:see|referto|accordingto)(?:the)?[^。；;!?！？]{0,60}(?:report|reviewmemo|reviewnotes|anotherfile)')),
     ('internal_index', re.compile(
@@ -36,4 +36,4 @@ def privacy_findings(text):
 def require_review_privacy(text, label='新增审阅文字'):
     codes = privacy_findings(text)
     if codes:
-        raise ValueError(f'{label}违反Word审阅隐私铁律：不得转介另一份文件或写入内部文件名、路径、链接、索引；请就地写清意见（{", ".join(codes)}）')
+        raise ValueError(f'{label}违反Word审阅隐私铁律：不得转介另一份文件或写入内部文件名、路径、链接或内部文件索引（稳定问题编号除外）；请就地写清意见（{", ".join(codes)}）')
