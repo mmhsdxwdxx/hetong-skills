@@ -241,15 +241,23 @@ def _lo_version(path: Path | None = None) -> str | None:
     binary = path or _lo_path()
     if binary is None:
         return None
+    # Windows console output is provided by soffice.com, not the GUI launcher.
+    # https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html
+    if _is_windows() and binary.suffix.lower() == ".exe":
+        console = binary.with_suffix(".com")
+        if console.is_file():
+            binary = console
     try:
         completed = subprocess.run(
-            [str(binary), "--version"],
+            [str(binary), "--headless", "--version"],
             capture_output=True,
             text=True,
             timeout=30,
             check=False,
         )
     except (OSError, subprocess.SubprocessError):
+        return None
+    if completed.returncode != 0:
         return None
     text = (completed.stdout or completed.stderr).strip()
     return text or None

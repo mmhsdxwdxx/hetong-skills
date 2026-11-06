@@ -102,6 +102,23 @@ class PlatformTests(unittest.TestCase):
                  mock.patch.object(office_kit.subprocess, "run", side_effect=convert):
                 office_kit._convert_batch([source], output, 10)
 
+    def test_windows_version_uses_console_launcher(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            gui = Path(temporary) / "soffice.exe"
+            console = Path(temporary) / "soffice.com"
+            gui.write_bytes(b"fixture")
+            console.write_bytes(b"fixture")
+            result = type("Result", (), {"returncode": 0, "stdout": "LibreOffice fixture", "stderr": ""})()
+            with mock.patch.object(office_kit, "_is_windows", return_value=True), \
+                 mock.patch.object(office_kit.subprocess, "run", return_value=result) as run:
+                self.assertEqual(office_kit._lo_version(gui), "LibreOffice fixture")
+            self.assertEqual(run.call_args.args[0], [str(console), "--headless", "--version"])
+
+    def test_version_rejects_failed_process_output(self) -> None:
+        result = type("Result", (), {"returncode": 1, "stdout": "", "stderr": "cannot start"})()
+        with mock.patch.object(office_kit.subprocess, "run", return_value=result):
+            self.assertIsNone(office_kit._lo_version(Path("/test/soffice")))
+
     def test_unsupported_platform_does_not_crash_import(self) -> None:
         # 模块导入不应依赖 fcntl/msvcrt；平台相关模块只在函数调用时加载。
         self.assertTrue(callable(office_kit._flock))
