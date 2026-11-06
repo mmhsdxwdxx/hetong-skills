@@ -1,7 +1,7 @@
 ﻿#requires -Version 5.1
 [CmdletBinding()]
 param(
-    [ValidateSet('core','generate','render','office')][string]$Profile = 'core',
+    [Alias('Profile')][ValidateSet('core','generate','render','office')][string]$CapabilityProfile = 'core',
     [switch]$InstallPython,
     [switch]$InstallPythonDependencies,
     [switch]$InstallLibreOffice,

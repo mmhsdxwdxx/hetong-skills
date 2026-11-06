@@ -1,7 +1,7 @@
 ﻿#requires -Version 5.1
 [CmdletBinding()]
 param(
-    [ValidateSet('core','generate','render','office')][string]$Profile = 'core',
+    [Alias('Profile')][ValidateSet('core','generate','render','office')][string]$CapabilityProfile = 'core',
     [switch]$InstallPython,
     [switch]$InstallPythonDependencies,
     [switch]$InstallLibreOffice,
@@ -59,13 +59,13 @@ function Invoke-Setup {
         throw 'CheckOnly不能与安装开关组合。'
     }
     if ($InstallPrerequisites) {
-        $Profile = 'office'
+        $CapabilityProfile = 'office'
         $InstallPython = $true
         $InstallPythonDependencies = $true
         $InstallLibreOffice = $true
         $FullValidation = $true
     }
-    if ($FullValidation -and $Profile -ne 'office') { throw 'FullValidation仅适用于显式选择office能力。' }
+    if ($FullValidation -and $CapabilityProfile -ne 'office') { throw 'FullValidation仅适用于显式选择office能力。' }
     if ($FullValidation -and -not $OutputDirectory) {
         $stamp = (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + [guid]::NewGuid().ToString('N').Substring(0,8)
         $OutputDirectory = Join-Path (Get-Location).Path ('产出\环境检查-' + $stamp)
@@ -80,7 +80,7 @@ function Invoke-Setup {
         $python = Find-Python
     }
     if (-not $python) { throw '未找到Python 3.10+；可指定-PythonExecutable或在获准后使用-InstallPython。' }
-    $arguments = @((Join-Path $script:HetongWordScriptRoot 'init.py'),'--profile',$Profile)
+    $arguments = @((Join-Path $script:HetongWordScriptRoot 'init.py'),'--profile',$CapabilityProfile)
     if ($Venv) { $arguments += @('--venv',$Venv) }
     elseif ($PythonExecutable -and -not $InstallPythonDependencies) { $arguments += @('--python',$python) }
     if ($LibreOfficeExecutable) { $arguments += @('--libreoffice',$LibreOfficeExecutable) }
