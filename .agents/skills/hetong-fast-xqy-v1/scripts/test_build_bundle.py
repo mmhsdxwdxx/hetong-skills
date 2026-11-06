@@ -91,7 +91,7 @@ class BundleTests(unittest.TestCase):
             comments = ET.fromstring(z.read('word/comments.xml'))
             text = ''.join(comments.itertext())
             for issue in self.data['issues']:
-                self.assertNotIn(issue['id'], text)
+                self.assertIn(issue['id'] + '｜', text)
                 self.assertIn(issue['comment_summary'], text)
             self.assertNotIn(result['report'], text)
             self.assertNotIn('详见', text)
@@ -106,6 +106,62 @@ class BundleTests(unittest.TestCase):
             for issue in self.data['issues']:
                 self.assertIn(issue['suggestion'], text)
         self.assertTrue(bundle.verify_bundle(self.out)['ok'])
+
+    def test_explicit_typo_correction_is_tracked(self):
+        doc=Document(self.source);doc.paragraphs[1].text='乙方收到货款后30日内开具具发票。';doc.save(self.source)
+        self.data['bundle']['source_sha256']=bundle.sha(self.source.read_bytes())
+        self.data['issues'] = [dict(self.data['issues'][0], type='correction',
+            correction_basis='grammar', comment_summary='重复或错误表达已按原意修正。',
+            anchors=[{'para':'RL0002','text':'开具具发票','replacement':'开具发票'}])]
+        save_case(self.input,self.data)
+        original=self.source.read_bytes()
+        result=bundle.build(self.input,self.out)
+        self.assertEqual(result['body_changes'],1)
+        self.assertEqual(self.source.read_bytes(),original)
+        with ZipFile(self.out/result['comments']) as z:
+            doc=ET.fromstring(z.read('word/document.xml'))
+            deleted=doc.findall('.//w:del',NS)
+            self.assertTrue(deleted)
+            self.assertEqual(''.join(deleted[0].itertext()), '具')
+            accepted=''.join(t.text or '' for t in doc.findall('.//w:t',NS))
+            self.assertIn('开具发票', accepted)
+            self.assertNotIn('开具具发票', accepted)
+        self.assertTrue(bundle.verify_bundle(self.out)['ok'])
+
+    def test_unclassified_replacement_and_comments_only_are_rejected(self):
+        self.data['issues'][0]['anchors'][0]['replacement']='不得擅自实施一般建议'
+        save_case(self.input,self.data)
+        with self.assertRaises(bundle.report.ReportError):bundle.build(self.input,self.out)
+        self.data['issues'][0]['type']='correction'
+        self.data['issues'][0]['correction_basis']='typo'
+        self.data['bundle']['comments_only']=True
+        save_case(self.input,self.data)
+        with self.assertRaises(bundle.report.ReportError):bundle.build(self.input,self.out)
+
+    def test_bilingual_correction_requires_final_chinese_basis(self):
+        doc=Document();doc.add_paragraph('甲放应接收货物。');doc.add_paragraph('Party B shall receive the goods.')
+        doc.save(self.source)
+        self.data['bundle']['source_sha256']=bundle.sha(self.source.read_bytes())
+        self.data['issues']=[dict(self.data['issues'][0], type='correction',
+            correction_basis='bilingual_alignment', chinese_source='甲方应接收货物。',
+            comment_summary='中文主体笔误及英文不一致，已同步更正。', anchors=[
+              {'para':'RL0001','text':'甲放','replacement':'甲方'},
+              {'para':'RL0002','text':'Party B','replacement':'Party A'}])]
+        save_case(self.input,self.data)
+        result=bundle.build(self.input,self.out)
+        self.assertEqual(result['body_changes'],2)
+        self.assertTrue(bundle.verify_bundle(self.out)['ok'])
+
+    def test_unverified_rule_correction_rejected(self):
+        issue=self.data['issues'][0];issue['type']='correction';issue['correction_basis']='verified_rule'
+        issue['anchors'][0]['replacement']='new text'
+        save_case(self.input,self.data)
+        with self.assertRaises(bundle.report.ReportError):bundle.build(self.input,self.out)
+
+    def test_long_comment_summary_is_rejected(self):
+        self.data['issues'][0]['comment_summary']='重复冗长解释'*25
+        save_case(self.input,self.data)
+        with self.assertRaises(bundle.report.ReportError):bundle.build(self.input,self.out)
 
     def test_dry_run_no_output(self):
         bundle.build(self.input, self.out, True)

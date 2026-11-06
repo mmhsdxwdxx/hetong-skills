@@ -42,11 +42,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install python-docx
+      - run: python -m pip install python-docx==1.2.0 pypdf==6.21.2
       - name: XQY report and paired delivery
         run: |
           python .agents/skills/hetong-fast-xqy-v1/scripts/test_build_report.py
           python .agents/skills/hetong-fast-xqy-v1/scripts/test_build_bundle.py
+          python .agents/skills/hetong-word/scripts/test_brief_report.py
 
   windows:
     runs-on: windows-latest

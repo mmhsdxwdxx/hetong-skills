@@ -15,7 +15,7 @@
 python3 scripts/build_workbuddy.py
 ```
 
-生成物和SHA-256清单在dist，不进入Git。当前develop记录版本为2.0.1（未正式发布），尚未发布对应Release附件；历史v1.3.0-dev.1下载不代表当前源码。
+生成物和SHA-256清单在dist，不进入Git。当前develop记录版本为2.0.2（未正式发布），尚未发布对应Release附件；历史v1.3.0-dev.1下载不代表当前源码。
 
 在WorkBuddy技能界面上传新生成的hetong.skill，或将合并包解压到宿主规定的skills目录。使用单技能包时须保持四套目录同级，以满足相对引用。升级前备份旧安装；独立hetong-server已撤并，旧入口应另行处理，不让两套架构混用。
 

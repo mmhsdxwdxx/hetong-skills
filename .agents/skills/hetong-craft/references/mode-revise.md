@@ -38,7 +38,7 @@
 ### 3. 实施
 
 红线/留痕/批注使用 [docx-redline](../../hetong-word/references/docx-redline.md) 的 inspect → plan（dry-run）→ apply → verify，
-不把普通 replace/set 生成的清洁文本当作红线。批注就地说明改动理由，R/C-ID仅在内部映射中关联，复杂目标按 [工具边界与替代路径](../../hetong-word/references/word-operation-paths.md) 分流，不强行调用不支持的引擎。
+不把普通 replace/set 生成的清洁文本当作红线。批注就地说明改动理由，双交付显示同一R问题编号，C-ID等技术映射另存，复杂目标按 [工具边界与替代路径](../../hetong-word/references/word-operation-paths.md) 分流，不强行调用不支持的引擎。
 
 已确认的普通清洁稿使用 `docx_tool.py`（见 [docx-workflow](../../hetong-word/references/docx-workflow.md)）：
 

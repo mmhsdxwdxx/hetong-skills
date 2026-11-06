@@ -36,4 +36,4 @@ def privacy_findings(text):
 def require_review_privacy(text, label='新增审阅文字'):
     codes = privacy_findings(text)
     if codes:
-        raise ValueError(f'{label}违反Word审阅隐私铁律：不得转介另一份文件或写入内部文件名、路径、链接、索引；请就地写清意见（{", ".join(codes)}）')
+        raise ValueError(f'{label}违反Word审阅隐私铁律：不得转介另一份文件或写入内部文件名、路径、链接或内部文件索引（稳定问题编号除外）；请就地写清意见（{", ".join(codes)}）')
