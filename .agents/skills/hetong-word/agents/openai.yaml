@@ -1,0 +1,4 @@
+interface:
+  display_name: "合同 Word 操作"
+  short_description: "按需处理合同 Word 读取、修订、批注、验证与预览，并初始化所需组件"
+  default_prompt: "使用 $hetong-word 按已确认范围处理 Word 文件，先检查所需环境并保留原件和历史修订。"

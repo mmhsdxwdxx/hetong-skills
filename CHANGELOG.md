@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.1（develop，2026-11-06）
+
+- 将 Word 读取、历史深读、原生修订、范围批注、隐私校验和共用 Office 运行时拆为 `hetong-word` 子技能，其他三个入口按需调用；保留旧脚本及参考路径兼容。
+- 初始化按 core / generate / render / office 分层，默认只检测并优先复用已有环境；Python 依赖和 LibreOffice 独立选装，不自动安装全套组件。
+- 更新四技能安装说明、WorkBuddy 打包、版本记录及 CI，覆盖最小依赖、旧入口、生成、渲染与安装保留检查。
+- 版本号按 2.0.1 记录，当前仅用于 develop 验证；不改动 main、不新增正式标签或 GitHub Release。
+
 ## 2.0.0-dev.6（develop，2026-11-02同步）
 
 - 甲方新增M21/A25，乙方更新B02，均为必要条款并采用相同的双方对等廉洁正文。

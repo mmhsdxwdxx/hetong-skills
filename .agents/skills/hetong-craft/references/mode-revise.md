@@ -10,7 +10,7 @@
 - 以用户当前保存的文件为基线，不恢复历史版本、不与旧稿比较（除非用户
   明确要求对比）；
 - 含修订/批注的 DOCX，先用 `scripts/word_reader.py analyze` 读取原文、接受视图、
-  标记视图、时间线、批注线程和条款变化链（见 [Word 深读](word-deep-read.md)）；
+  标记视图、时间线、批注线程和条款变化链（见 [Word 深读](../../hetong-word/references/word-deep-read.md)）；
   未读完这些视图前不开始改写，也不自动接受/拒绝历史修订；
 - 全文 `extract`，通读；属于合同族的，同时提取存在接口的关联文件；
 - 从已有指令核对改动权限与输出方式，已明确时不再询问：清洁稿、未接受红线稿或仅批注稿；红线/批注只另存副本，
@@ -37,10 +37,10 @@
 
 ### 3. 实施
 
-红线/留痕/批注使用 [docx-redline](docx-redline.md) 的 inspect → plan（dry-run）→ apply → verify，
-不把普通 replace/set 生成的清洁文本当作红线。批注就地说明改动理由，R/C-ID仅在内部映射中关联，复杂目标按 [工具边界与替代路径](word-operation-paths.md) 分流，不强行调用不支持的引擎。
+红线/留痕/批注使用 [docx-redline](../../hetong-word/references/docx-redline.md) 的 inspect → plan（dry-run）→ apply → verify，
+不把普通 replace/set 生成的清洁文本当作红线。批注就地说明改动理由，R/C-ID仅在内部映射中关联，复杂目标按 [工具边界与替代路径](../../hetong-word/references/word-operation-paths.md) 分流，不强行调用不支持的引擎。
 
-已确认的普通清洁稿使用 `docx_tool.py`（见 [docx-workflow](docx-workflow.md)）：
+已确认的普通清洁稿使用 `docx_tool.py`（见 [docx-workflow](../../hetong-word/references/docx-workflow.md)）：
 
 - 措辞/数值替换：`replace`（多段落命中时必须用 `--para` 逐点确认，谨慎
   使用 `--all`）；
@@ -51,7 +51,7 @@
 - 表格：`add-row` 增行，改单元格用 `set` 对单元格内段落操作；
 - 多处改动优先 `batch` + `--dry-run` 预演，确认无误再 `--in-place`。
 
-PPTX 使用 [Office 精修与无头预览](office-workflow.md)：
+PPTX 使用 [Office 精修与无头预览](../../hetong-word/references/office-workflow.md)：
 
 1. `office_kit.py inspect` 取 SHA、页码和 `shape_id`；
 2. 一份计划覆盖全部改动，`pptx apply --dry-run` 验证；

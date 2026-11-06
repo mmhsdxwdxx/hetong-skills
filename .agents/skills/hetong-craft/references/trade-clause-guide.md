@@ -36,8 +36,8 @@
 | 买卖任务受理、立场、合同阶段、署名及交付选择 | [开场分流](intake-workflow.md)，已有明确答复直接沿用，不在技能维护时机械提问 |
 | 金额、税率、期限、上下游资金与保函分账 | [量化与履约核验](quantitative-review.md)，按本单数据独立复算 |
 | 已获授权的条款落实及清洁/留痕版本 | [修订与验证](revision-workflow.md)，复用本技能的Word工具和授权边界 |
-| 批注内容、范围、历史及回复 | [批注质量与锚定](comment-workflow.md)，保留真实作者与未决状态 |
-| 两份近似DOCX的未留痕变化 | [未留痕改动检查](hidden-change-review.md)，只读，不判断主观恶意 |
+| 批注内容、范围、历史及回复 | [批注质量与锚定](../../hetong-word/references/comment-workflow.md)，保留真实作者与未决状态 |
+| 两份近似DOCX的未留痕变化 | [未留痕改动检查](../../hetong-word/references/hidden-change-review.md)，只读，不判断主观恶意 |
 
 深度审核仍由`hetong-review`承担R/Q/C追溯、法源核查和诊断流程。按需协作及原生审阅配色沿用本技能共用规则；小任务不加载整套资料，不能用工具通过代替语义和目标客户端验收。
 

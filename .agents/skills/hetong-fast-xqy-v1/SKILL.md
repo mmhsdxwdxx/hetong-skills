@@ -8,11 +8,15 @@ description: 按XQY八项框架及甲乙方立场快审，突出本方固定条�
 这是 hetong 系列可按甲乙方立场切换的快审子技能。**快在报告简明、重点固定，不减免全文阅读、数字复算和关键法源核验。**
 只影响本流程，不替换普通深度审核；固定条款引用同级craft的唯一真源，不复制一套条款正文。
 
-需要打开报告、批注稿或其他Word文档时，默认使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。执行craft的[默认打开程序与原生审阅显示](../hetong-craft/references/native-review-display.md)。
+需要读取、深读、生成、批注、修订或验证 Word 时，加载 [hetong-word](../hetong-word/SKILL.md)，
+并说明“本次使用 `hetong-word` 处理 Word 文件”。环境检测和按需安装按其初始化流程执行；
+调用子技能不自动委派子代理，不改变本技能的内容判断和授权范围。
+
+需要打开报告、批注稿或其他Word文档时，默认使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。执行hetong-word的[默认打开程序与原生审阅显示](../hetong-word/references/native-review-display.md)。
 
 我方向下游供货时，执行craft的[下游保函责任原则](../hetong-craft/references/downstream-guarantee-policy.md)，第3、6项联查：罚则由保函金额覆盖、出险依实函兑付、不另退预付款，不沿用历史比例罚则或保函外现金赔付；该原则优先于历史条款和样张，实际承保与法律边界仍核验。新旧线程后续加载均适用，不批量发送刷新消息，不自动改动既有成果。
 
-**Word审阅隐私铁律**：直接调用或仅借鉴hetong做法均执行[共用规则](../hetong-craft/references/review-privacy.md)。批注、回复、修订文字及理由不得转介另一份文件，不写内部报告名称、路径、链接和索引；批注必须独立可懂，编号映射仅留内部。
+**Word审阅隐私铁律**：直接调用或仅借鉴hetong做法均执行[共用规则](../hetong-word/references/review-privacy.md)。批注、回复、修订文字及理由不得转介另一份文件，不写内部报告名称、路径、链接和索引；批注必须独立可懂，编号映射仅留内部。
 
 ## 调用与边界
 
@@ -58,23 +62,23 @@ description: 按XQY八项框架及甲乙方立场快审，突出本方固定条�
 ## 执行
 
 1. 锁定指定原件，记录路径和SHA256，另存只读基线；缺少文件不以类似文件替换。
-2. 阅读正文、表格、附件和图片。旧`.doc`先另存转换件并独立提取交叉核对；含修订／批注的DOCX先用 [word_reader.py](../hetong-craft/scripts/word_reader.py) 核对原文、接受、标记、时间线和批注，不接受／拒绝原件历史。
+2. 阅读正文、表格、附件和图片。旧`.doc`先另存转换件并独立提取交叉核对；含修订／批注的DOCX先用 [word_reader.py](../hetong-word/scripts/word_reader.py) 核对原文、接受、标记、时间线和批注，不接受／拒绝原件历史。
 3. 先确定本方及实际交易角色，还原数量、价税、交期、付款／开证链，再按八项检查并匹配本方固定条款；另扫责任上限、质保、主体、管辖等明显重大问题。保留模块编号、原文定位、正文来源和符合情况，不将文件名、图片描述或大写残留金额当成交事实。
 4. 关键法律结论按 [法律核验](../hetong-review/references/legal-verification.md) 查当前官方全文；对外仅检索抽象问题。商业风险、待补事实与效力结论分开。
 5. 每项先简述现状，再以R事项承担详细分析。需要修改的，报告中直接写建议条文或明确删除文字与新增位置，不只说“建议完善”；具体参数不明仍占位。已满足且无履约提醒的不强行建R；具体注意事项可建注意类R并在批注中提醒。
 6. 未确认金额、期限、违约比例、保额、起算点等在样例写`【待确认：具体参数】`。用户本次明确给出的参数不擅自改掉；原文提取和复算数字注明来源。需要用户确定重要商业条件时，以普通文字集中提问并等待，不用选择卡、超时或默认值确认；不妨碍先交付待确认版报告。
-7. 按 [Word交付规格](references/report-format.md) 填结构化数据，先运行craft红线工具`inspect`取得RL定位，再填精确锚文本。用 [双交付生成器](scripts/build_bundle.py) 的`--dry-run`核对全部映射，成功后生成完整的两份交付；它复用craft原生批注引擎，只允许comment操作，**不代替合同审核或语义选区判断**。
+7. 按 [Word交付规格](references/report-format.md) 填结构化数据，先运行hetong-word红线工具`inspect`取得RL定位，再填精确锚文本。用 [双交付生成器](scripts/build_bundle.py) 的`--dry-run`核对全部映射，成功后生成完整的两份交付；它复用hetong-word原生批注引擎，只允许comment操作，**不代替合同审核或语义选区判断**。
 8. 运行双向核验：每条新增批注均有报告详细项、每个应批R均有锚点；逐一核对文档版本、文件名及R编号。源指纹、正文/样式/历史保留检查通过，再渲染和查看报告与批注稿版面；原生批注另作结构核验，无头预览看不到批注不算丢失。只报告实际验证，不声称Word/WPS实机兼容已测。
 
 ## 快捷命令
 
-`PY`使用当前宿主已验证的Office Python（Codex先调用workspace dependencies工具；其他宿主沿用hetong Office隔离环境），不要新装一套依赖。
+`PY`使用当前宿主已验证的Office Python（Codex先调用workspace dependencies工具；其他宿主沿用hetong Office隔离环境），先复用已有环境；缺失时按 hetong-word 初始化流程选装 generate/render 所需组件。
 
 ```bash
 "$PY" <本技能>/scripts/build_bundle.py --input 产出/快审数据.json --out-dir 产出/交付_v1 --dry-run
 "$PY" <本技能>/scripts/build_bundle.py --input 产出/快审数据.json --out-dir 产出/交付_v1
 "$PY" <本技能>/scripts/build_bundle.py --verify 产出/交付_v1
-python3 <hetong-craft>/scripts/office_kit.py render 产出/交付_v1/*.docx --out 产出/核验/预览
+python3 <hetong-word>/scripts/office_kit.py render 产出/交付_v1/*.docx --out 产出/核验/预览
 ```
 
 基础格式示例见 [虚构快审数据](assets/example-report.json)，双交付字段见 [双文件规则](references/paired-delivery.md)。旧`build_report.py`保留用于明确只要报告的任务及兼容旧输入，不代替默认双交付。示例只演示格式，**禁止把其合同事实、金额、法源或结论移植到真实报告**。

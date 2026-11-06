@@ -26,7 +26,7 @@ def module(name, path):
 
 
 report = module('xqy_linked_report', HERE / 'build_report.py')
-engine = module('xqy_comment_engine', HERE.parents[1] / 'hetong-craft/scripts/hetong_redline.py')
+engine = module('xqy_comment_engine', HERE.parents[1] / 'hetong-word/scripts/hetong_redline.py')
 NS = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
 
 

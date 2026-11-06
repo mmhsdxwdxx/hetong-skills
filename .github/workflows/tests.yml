@@ -30,6 +30,10 @@ jobs:
           python .agents/skills/hetong-craft/scripts/test_intake_redline.py
           python .agents/skills/hetong-review/scripts/test_review_kit.py
           python scripts/test_build_workbuddy.py
+          python scripts/test_install.py
+          if [ "${{ matrix.python-version }}" = "3.12" ]; then
+            python .agents/skills/hetong-word/scripts/test_init.py
+          fi
 
   reports:
     runs-on: ubuntu-latest
@@ -68,6 +72,13 @@ jobs:
           python .agents/skills/hetong-craft/scripts/test_intake_redline.py
           python .agents/skills/hetong-review/scripts/test_review_kit.py
           python scripts/test_build_workbuddy.py
+      - name: Word initialization defaults and optional components
+        shell: pwsh
+        run: |
+          python .agents/skills/hetong-word/scripts/test_init.py
+          if ($LASTEXITCODE -ne 0) { throw 'Word initialization tests failed' }
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents/skills/hetong-word/scripts/setup_windows.ps1 -Profile core -CheckOnly
+          if ($LASTEXITCODE -ne 0) { throw 'Core initialization failed' }
       - name: PowerShell installer smoke test
         shell: pwsh
         run: |
@@ -77,7 +88,7 @@ jobs:
           $skills = Join-Path $target ".agents\skills"
           Get-ChildItem -LiteralPath $skills -Recurse -File |
             Select-Object -First 12 -ExpandProperty FullName
-          $skill = Join-Path $skills "hetong-craft\SKILL.md"
+          $skill = Join-Path $skills "hetong-word\SKILL.md"
           if (-not (Test-Path -LiteralPath $skill)) {
             throw "Installed skill missing: $skill"
           }
@@ -121,14 +132,15 @@ jobs:
           $venv = Join-Path $env:RUNNER_TEMP 'hetong runtime\venv'
           foreach ($mode in @('setup','check')) {
             $output = Join-Path $env:RUNNER_TEMP "hetong-win11-$mode\合同 环境"
-            $arguments = @('-NoProfile','-ExecutionPolicy','Bypass','-File','.agents\skills\hetong-craft\scripts\setup_windows.ps1','-PythonExecutable',$python,'-Venv',$venv,'-OutputDirectory',$output)
-            if ($mode -eq 'check') { $arguments += '-CheckOnly' }
+            $arguments = @('-NoProfile','-ExecutionPolicy','Bypass','-File','.agents\skills\hetong-word\scripts\setup_windows.ps1','-Profile','office','-FullValidation','-PythonExecutable',$python,'-Venv',$venv,'-OutputDirectory',$output)
+            if ($mode -eq 'check') { $arguments += '-CheckOnly' } else { $arguments += '-InstallPythonDependencies' }
             & powershell.exe @arguments
             $code = $LASTEXITCODE
             $result = Get-Content -Raw -LiteralPath (Join-Path $output 'setup-result.json') | ConvertFrom-Json
             $doctor = Get-Content -Raw -LiteralPath (Join-Path $output 'doctor.json') | ConvertFrom-Json
             $smoke = Get-Content -Raw -LiteralPath (Join-Path $output 'Word样张\smoke-result.json') | ConvertFrom-Json
-            if ($result.setup_performed -ne ($mode -eq 'setup')) { throw 'Unexpected dependency setup in check-only mode' }
+            if (-not $result.capability_ok) { throw 'Required Office capabilities missing' }
+            if ($mode -eq 'check' -and $result.actions.Count -ne 0) { throw 'Check-only must not install components' }
             if (-not $doctor.ok -or -not $smoke.synthetic_only -or -not $smoke.source_unchanged -or -not $smoke.redline_verified -or $smoke.rendered_documents -ne 3) { throw 'Runtime or document checks failed' }
             foreach ($name in @('insertions','deletions','comments')) {
               if ($smoke.native_marks.$name -ne 1) { throw "Unexpected native mark count: $name" }
@@ -144,10 +156,10 @@ jobs:
             }
           }
           $bad = Join-Path $env:RUNNER_TEMP 'hetong-win11-invalid'
-          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents\skills\hetong-craft\scripts\setup_windows.ps1 -PythonExecutable $python -CheckOnly -LibreOfficeExecutable 'C:\does-not-exist\soffice.exe' -OutputDirectory $bad
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents\skills\hetong-word\scripts\setup_windows.ps1 -Profile render -PythonExecutable $python -CheckOnly -LibreOfficeExecutable 'C:\does-not-exist\soffice.exe' -OutputDirectory $bad
           if ($LASTEXITCODE -eq 0) { throw 'Invalid LibreOffice path must fail' }
           $invalid = Get-Content -Raw -LiteralPath (Join-Path $bad 'setup-result.json') | ConvertFrom-Json
-          if ($invalid.ok -or $invalid.setup_performed -or $invalid.error -notlike '*LibreOffice*') { throw 'Invalid-path receipt did not identify LibreOffice' }
+          if ($invalid.ok -or $invalid.error -notlike '*LibreOffice*') { throw 'Invalid-path receipt did not identify LibreOffice' }
           exit 0
       - uses: actions/upload-artifact@v4
         if: always()

@@ -15,13 +15,13 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-SKILLS = ("hetong-craft", "hetong-review", "hetong-fast-xqy-v1")
+SKILLS = ("hetong-craft", "hetong-review", "hetong-fast-xqy-v1", "hetong-word")
 IGNORE = shutil.ignore_patterns(
     "__pycache__", "*.pyc", "*.pyo", ".ruff_cache", ".DS_Store",
 )
 RUNTIME_NOTE = (
     "\n> **WorkBuddy 运行提示**：本技能已按 WorkBuddy Skill 包安装。"
-    "核心读取与审核脚本以 Python 标准库为主；快审Word生成还需 python-docx。优先使用当前会话可用的 `python`、`py -3` 或 `python3`。"
+    "Word 基础能力使用 Python 3.10+ 标准库；按 hetong-word 初始化流程先检测，生成与预览组件分别选装。优先使用当前会话可用的 `python`、`py -3` 或 `python3`。"
     "Office 页面渲染需要额外安装 LibreOffice；没有时不影响 DOCX 读取、红线、审核和暗改检测。\n"
 )
 
@@ -85,20 +85,23 @@ user-invocable: true
 
 # 合同工作台（WorkBuddy 单包）
 
-本包内含三套技能，按任务读取对应入口；不要一次加载全部长文。
+本包内含四套技能，按任务读取对应入口；不要一次加载全部长文。
 
 ## 路由
 
 1. **审核、找风险、判断能否签、版本对比、关闭核验**  
    读取 `bundled/hetong-review/SKILL.md`，按其流程执行；默认只读，不改原件。
-2. **起草、修订、润色、完善、Word 深读、红线/批注、Office 处理**  
+2. **起草、修订、润色、完善和合同内容判断**
    读取 `bundled/hetong-craft/SKILL.md`。
 3. **点名XQY快审／徐启源口径快审**
    读取 `bundled/hetong-fast-xqy-v1/SKILL.md`，按本次立场交付详细报告和原稿批注副本。
 4. **两版近似合同、怀疑绕过修订直接改正文**  
-   读取 `bundled/hetong-craft/references/hidden-change-review.md`，并运行 `bundled/hetong-craft/scripts/hidden_change.py`。
+   读取 `bundled/hetong-word/references/hidden-change-review.md`，并运行 `bundled/hetong-word/scripts/hidden_change.py`。
 5. **履约时间轴与付款、交付、保函、发票联动**
    读取 `bundled/hetong-craft/references/contract-timeline.md`，使用其中的离线模板。
+
+6. **Word 读取、历史深读、红线、批注、验证与预览**
+   读取 `bundled/hetong-word/SKILL.md`；先按需初始化，调用技能不自动委派子代理。
 
 甲乙方买卖条款统一在craft内，按实际角色和本次选择使用；原独立hetong-server已撤并。
 
@@ -113,7 +116,7 @@ user-invocable: true
 
 ## 运行
 
-核心读取与审核脚本以 Python 3.9+ 标准库为主；快审Word生成还需 python-docx。按当前环境使用 `python`、`py -3` 或 `python3`。Office页面渲染需要LibreOffice；以实际可用能力为准，不把缺少渲染说成已验证页面。
+Word 基础能力使用 Python 3.10+ 标准库；按 hetong-word 初始化流程先检测，生成与预览组件分别选装。按当前环境使用 `python`、`py -3` 或 `python3`。Office页面渲染需要LibreOffice；以实际可用能力为准，不把缺少渲染说成已验证页面。
 """
 
 
@@ -165,7 +168,7 @@ def main() -> int:
         manifest = {
             "version": version,
             "source": ".agents/skills",
-            "workbuddy_layout": "three sibling skill folders under ~/.workbuddy/skills",
+            "workbuddy_layout": "four sibling skill folders under ~/.workbuddy/skills",
             "packages": packages,
             "combined": {
                 "path": combined.name,

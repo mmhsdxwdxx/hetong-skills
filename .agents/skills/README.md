@@ -1,6 +1,10 @@
 # 仓库级合同技能
 
-`hetong-craft`是统一入口和甲乙方条款的唯一内容真源；`hetong-review`承接深度审核；`hetong-fast-xqy-v1`是按XQY八项框架及甲乙方立场交付宋体Word报告的快审子技能。三者共同位于`.agents/skills/`。独立`hetong-server`已撤并，不再维护或加载其副本。
+`hetong-craft`是统一入口和甲乙方条款的唯一内容真源；`hetong-review`承接深度审核；`hetong-fast-xqy-v1`是按XQY八项框架及甲乙方立场交付宋体Word报告的快审子技能。Word文件操作统一调用`hetong-word`子技能。四者共同位于`.agents/skills/`。独立`hetong-server`已撤并，不再维护或加载其副本。
+
+## Word操作与按需初始化
+
+`2.0.1`起，Word深读、修订、批注、审阅隐私、成品验证与共用Office运行时由[hetong-word](hetong-word/SKILL.md)统一维护。其他入口需要时明确调用该技能，调用不等于派发子代理。旧craft脚本和参考路径保留薄兼容入口。初始化默认只检测；基础操作不需要LibreOffice，生成与预览组件按需选装。此处为技能工作流初始化，不宣称宿主会自动执行安装钩子。
 
 ## 双向廉洁合作条款
 
@@ -8,23 +12,23 @@
 
 ## Word文档默认用WPS打开
 
-`2.0.0-dev.5`起，三套技能需要打开、查看或在客户端验收Word文档时，默认使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。共用[客户端规则](hetong-craft/references/native-review-display.md)，不依赖未经核实的系统文件关联，不改操作系统默认设置；离线处理与LibreOffice无头预览保持原流程。
+`2.0.0-dev.5`起，各技能需要打开、查看或在客户端验收Word文档时，默认使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。共用[客户端规则](hetong-word/references/native-review-display.md)，不依赖未经核实的系统文件关联，不改操作系统默认设置；离线处理与LibreOffice无头预览保持原流程。
 
 ## Word审阅隐私铁律
 
-`2.0.0-dev.4`起，无论直接调用hetong系列技能还是仅借鉴其方法，Word批注、回复、修订文字及理由都不得转介另一份文件，不透露内部报告/底稿的名称、路径、链接或索引。意见须独立完整；报告与批注的对应关系只留在内部记录。规则真源见[审阅隐私](hetong-craft/references/review-privacy.md)。
+`2.0.0-dev.4`起，无论直接调用hetong系列技能还是仅借鉴其方法，Word批注、回复、修订文字及理由都不得转介另一份文件，不透露内部报告/底稿的名称、路径、链接或索引。意见须独立完整；报告与批注的对应关系只留在内部记录。规则真源见[审阅隐私](hetong-word/references/review-privacy.md)。
 
 ## 目录与职责
 
-当前开发版见[VERSION](VERSION)。`2.0.0-dev.3`新增[下游保函责任原则](hetong-craft/references/downstream-guarantee-policy.md)，三个技能共同引用：下游我方供货时，罚则以保函金额覆盖、出险走保函兑付、不另退预付款、不沿用历史比例罚则。[启用记录](hetong-craft/references/downstream-guarantee-policy.json)记载版本；新旧线程后续加载均适用，不按创建时间隔离，不批量发送刷新指令或唤醒已有聊天。本分支提供开发试用源码，不等同于发布正式标签或更新同事安装包。
+本地开发版见[VERSION](VERSION)。`2.0.0-dev.3`新增[下游保函责任原则](hetong-craft/references/downstream-guarantee-policy.md)，三个技能共同引用：下游我方供货时，罚则以保函金额覆盖、出险走保函兑付、不另退预付款、不沿用历史比例罚则。[启用记录](hetong-craft/references/downstream-guarantee-policy.json)记载版本；新旧线程后续加载均适用，不按创建时间隔离，不批量发送刷新指令或唤醒已有聊天。只更新本地开发真源，不等同于发布正式标签或更新同事安装包。
 
 ```text
 .agents/skills/
 ├── hetong-craft/
 │   ├── SKILL.md
-│   ├── references/   # 五模式、索引、类别选择、Word与原生审阅显示
+│   ├── references/   # 五模式、索引、类别选择与Word兼容入口
 │   │   └── clauses/  # buyer/与seller/，一类一个Markdown正文文件
-│   ├── scripts/      # Word读写、Office、类别筛选、未留痕检查
+│   ├── scripts/      # 类别筛选、受理与旧工具兼容入口
 │   ├── assets/
 │   └── evals/        # 通用与买卖合同虚构场景
 ├── hetong-review/
@@ -33,6 +37,11 @@
 │   ├── scripts/
 │   ├── assets/
 │   └── evals/
+├── hetong-word/
+│   ├── SKILL.md
+│   ├── references/   # Word操作、验证与按需初始化
+│   ├── scripts/      # 唯一Word/Office实现、分层依赖检测与选装
+│   └── assets/
 └── hetong-fast-xqy-v1/
     ├── SKILL.md
     ├── references/   # 八项重点、Word版式与输入规格
@@ -45,7 +54,7 @@
 
 ## Claude Code CLI 与桌面端
 
-Claude Code 使用项目级 `.claude/skills/` 发现技能。本仓库在该目录为 `hetong-craft`、`hetong-review`、`hetong-fast-xqy-v1` 设置相对软链接，目标仍是本目录的原文件；修改本目录即可更新两端，无须复制技能或上传合同资料。目标项目的AGENTS.md／CLAUDE.md规则由该项目自行维护，本公开包不附带真实合同工作区规则。
+Claude Code 使用项目级 `.claude/skills/` 发现技能。本仓库在该目录为 `hetong-craft`、`hetong-review`、`hetong-fast-xqy-v1`、`hetong-word` 设置相对软链接，目标仍是本目录的原文件；修改本目录即可更新两端，无须复制技能或上传合同资料。根目录 `CLAUDE.md` 以 `@AGENTS.md` 导入统一规则。
 
 - CLI：在本仓库或其子目录运行 `claude`，使用 `/hetong-craft` 或 `/hetong-review`，也可直接说明合同任务。
 - 桌面端：在 Claude 的 **Code** 页选择本仓库作为本地项目，新建会话后输入同样的命令。此连接适用于 Code 本地会话，不等同于 Chat、Cowork 或云端账号技能安装。
@@ -75,7 +84,7 @@ XQY快审保留八项顺序，按本次甲方／乙方及实际买卖角色切�
 
 [买卖条款使用指南](hetong-craft/references/trade-clause-guide.md)负责角色和适用边界。目录归并不把服务器品名、SN、压测等要求泛化为所有合同义务。类别选择不是商业条件确认，也不是追加或删除条款的授权。
 
-[按需协作](hetong-craft/references/agent-collaboration.md)默认继承主模型。[原生审阅显示](hetong-craft/references/native-review-display.md)只在Word/WPS能力范围内指定；不能安全设置时保留原样并继续，不向正文加字色、底纹，也不改变历史作者。
+[按需协作](hetong-craft/references/agent-collaboration.md)默认继承主模型。[原生审阅显示](hetong-word/references/native-review-display.md)只在Word/WPS能力范围内指定；不能安全设置时保留原样并继续，不向正文加字色、底纹，也不改变历史作者。
 
 ## 履约时间轴共用规范
 
@@ -85,11 +94,12 @@ XQY快审保留八项顺序，按本次甲方／乙方及实际买卖角色切�
 
 ## 维护与验证
 
-Windows使用[安装、升级与检查流程](hetong-craft/references/windows-setup.md)。安装技能不自动安装Python／LibreOffice；PowerShell入口在明确给出安装开关时补系统软件，默认仅配置隔离依赖并检查，`-CheckOnly`不调用包管理器。字体按系统分支处理，保留虚构样张，不刷新已有线程。
+环境配置统一使用[hetong-word初始化](hetong-word/references/environment-init.md)，Windows使用[PowerShell入口](hetong-word/references/windows-setup.md)。默认只检测core，不安装依赖或要求LibreOffice；generate、render、office按需选择，安装Python依赖和LibreOffice使用独立开关。字体与原生客户端单独核验。
 
 保持相对引用有效，真实合同和任务成果不得混入技能包。Office环境放在用户数据或任务产出目录，技能中不放缓存、锁文件或虚拟环境。每次改动后运行：
 
 ```bash
+python3 .agents/skills/hetong-word/scripts/test_init.py
 python3 .agents/skills/hetong-craft/scripts/test_hetong_redline.py
 python3 .agents/skills/hetong-craft/scripts/test_word_reader.py
 python3 .agents/skills/hetong-craft/scripts/test_office_kit.py
@@ -105,11 +115,11 @@ python3 .agents/skills/hetong-review/scripts/test_review_kit.py
 "$PY" .agents/skills/hetong-fast-xqy-v1/scripts/test_build_bundle.py
 ```
 
-快审生成测试中的`PY`使用现有Office Python（需要python-docx）。涉及路由、目录或frontmatter时，另做宿主发现与加载探针，确认发现craft、review和fast-xqy-v1三个入口且引用可读，无旧server入口。更新后的核验使用独立新进程；是否刷新已有对话按用户指令，不把发送刷新消息当成加载成功。
+快审生成测试中的`PY`使用现有Office Python（需要python-docx）。涉及路由、目录或frontmatter时，另做宿主发现与加载探针，确认发现craft、review、fast-xqy-v1和word四个入口且引用可读，无旧server入口。更新后的核验使用独立新进程；是否刷新已有对话按用户指令，不把发送刷新消息当成加载成功。
 
 涉及受理交互时，加载探针不构成验收：另验证PiDeck/Claude桌面界面、目标模型实际调用、两项以上同时选择及回传、取消/空选/超时和禁止越权写入。记录软件版本、模型实际标识、真实界面与模拟测试的区别。
 
-Office环境变化后运行`hetong-craft/scripts/office_kit.py doctor --full`及相应回归。显示与实机兼容必须据实际证据报告，脚本通过不等于Word/WPS界面已验证。
+环境变化后按实际启用能力运行回归；完整Office能力再运行`hetong-word/scripts/office_kit.py doctor --full`。显示与实机兼容必须据实际证据报告，脚本通过不等于Word/WPS界面已验证。
 
 开发和发布规则见[DEVELOPMENT.md](DEVELOPMENT.md)。历史验证不替代当前验证，当前记录见[VALIDATION.md](VALIDATION.md)。
 

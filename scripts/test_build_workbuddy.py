@@ -12,7 +12,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = {"hetong-craft", "hetong-review", "hetong-fast-xqy-v1"}
+SKILLS = {"hetong-craft", "hetong-review", "hetong-fast-xqy-v1", "hetong-word"}
 
 
 class WorkBuddyPackages(unittest.TestCase):
