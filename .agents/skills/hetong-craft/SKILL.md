@@ -1,8 +1,8 @@
 ---
 name: hetong-craft
 description: |
-  中文商务合同的起草、修订、润色、完善、审核一体化工作流，含 docx 安全读写、PPTX
-  计划式精修、未接受修订痕迹、范围批注、Word 修订/批注时间线深读和无头视觉预览。
+  中文商务合同的起草、修订、润色、完善、审核一体化工作流。合同判断和条款管理由本技能负责，
+  Word 读取、修订、批注及预览按需调用 hetong-word 子技能；保留 PPTX 计划式精修入口。
   Use when asked to 起草/草拟/撰写合同或条款，修订/修改/变更既有合同文本，润色/语言规范化，
   完善/查漏补缺/补强条款，或审核/审阅/审计合同并出具报告 —— 尤其适用于多主体、多层级、
   背靠背、税率拆分、合同族联动修订等复杂交易结构。统一管理甲乙方买卖条款库、类别多选和未留痕改动检查；原hetong-server的条款与工具已并入本技能。Not for non-hetong legal documents.
@@ -13,7 +13,7 @@ description: |
 起草、修订、润色、完善、审核中文商务合同的统一工作流。五种模式共用一套铁律与工具，
 各自有专门的深度流程文件，按需加载。
 
-需要打开、查看或在客户端验收Word文档时，默认使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。执行[默认打开程序与原生审阅显示](references/native-review-display.md)，不要把“Word文档”理解为指定Microsoft Word应用。
+需要打开、查看或在客户端验收Word文档时，默认使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。执行[默认打开程序与原生审阅显示](../hetong-word/references/native-review-display.md)，不要把“Word文档”理解为指定Microsoft Word应用。
 
 ## 下游供货责任原则
 
@@ -60,7 +60,7 @@ description: |
    不得直接引用示例/模板数字充当合同金额。
 6. **保密**。合同与交易结构属敏感信息：不进公开仓库、不外传、不被要求时
    不复述完整交易细节。
-7. **Word审阅隐私铁律**。无论直接调用本系列技能，还是仅借鉴hetong的方法，Word批注、回复、修订文字及修订理由都不得用“详见/参见另一份文件”等表述，或泄露内部报告、底稿的文件名、路径、链接、索引。意见须就地写清，内部追溯只留在独立记录中；执行[审阅隐私规则](references/review-privacy.md)。
+7. **Word审阅隐私铁律**。无论直接调用本系列技能，还是仅借鉴hetong的方法，Word批注、回复、修订文字及修订理由都不得用“详见/参见另一份文件”等表述，或泄露内部报告、底稿的文件名、路径、链接、索引。意见须就地写清，内部追溯只留在独立记录中；执行[审阅隐私规则](../hetong-word/references/review-privacy.md)。
 
 ## 模式路由
 
@@ -77,7 +77,7 @@ description: |
 仅当歧义实质影响范围或正确性时提问，继续不依赖答案的工作。
 
 **甲乙方条款统一由本技能管理。** 买卖合同需要调用预设条款时，读取[条款库与使用流程](references/trade-clause-guide.md)：甲乙方均先确定本次类别，再按所选范围读取分类Markdown正文。甲方保留原A01—A24整合的20项，新增M21/A25廉洁条款后共21项；乙方保留B01—B11；JSON仅为派生索引，不维护另一份正文。条款内容以本技能内的资料为准，`hetong-review`仅引用，不再加载独立的`hetong-server`。
-服务器、SN、压测等专用内容仍按实际标的适用，不因移入通用入口而自动套用于服务、租赁等其他合同。两个近似DOCX的额外核对可按[未留痕改动检查](references/hidden-change-review.md)调用本技能的`hidden_change.py`。
+服务器、SN、压测等专用内容仍按实际标的适用，不因移入通用入口而自动套用于服务、租赁等其他合同。两个近似DOCX的额外核对可按[未留痕改动检查](../hetong-word/references/hidden-change-review.md)调用本技能的`hidden_change.py`。
 
 新增批注须先按[批注触发标准](references/comment-policy.md)判断：仅命中固定条款且无需改动不批注；实际缺陷、需要增删修订和错别字按本次授权处理。
 
@@ -92,81 +92,35 @@ description: |
 4. **执行模式流程**（见各 mode 文件）。有可独立验收且值得并行的工作包时，按[合同任务协作](references/agent-collaboration.md)派发子代理；模型默认继承主代理，主代理保留整体判断与最终验收。
 5. **自检**：模式自检清单 + [审查总清单](references/checklist-review.md)
    中相关部分 + [语言体例](references/style-zh-hetong.md)。
-6. **交付**：成果文件 + 对应记录模板（见 [assets](assets/) ），说明未决
+6. **交付**：成果文件 + 对应记录模板（见 [assets](assets) ），说明未决
    事项与建议下一步。
 
-## 工具速查
+## 文档操作入口
 
-**内容已确定且适合委派的 Word 操作**按[Word 操作委派](references/word-operation-agent.md)交接，默认继承主模型及会话运行设置，不固定型号、不限定宿主。不支持子代理或小修改没有分工收益时，由主代理完成。
-内容判断和最终验收仍由主 Agent 负责；此入口不扩大写入授权，也不委派尚未确定的条款或批注内容。
-写入前按[原生审阅显示与配色](references/native-review-display.md)检查目标客户端的显示能力：仅在能力范围内指定原生颜色，不给正文添加字色、高亮或底纹；不能安全设置时保留原生显示并继续任务。
+需要提取或深读 Word、生成 DOCX、留痕修改、添加批注、审阅结构验证或页面预览时，加载
+[hetong-word](../hetong-word/SKILL.md)，向用户说明“本次使用 `hetong-word` 处理 Word 文件”。
+本技能负责合同判断、条款与批注意见；Word 子技能负责实施和文档验证。调用子技能不自动委派子代理。
 
-`scripts/docx_tool.py`（纯 Python 标准库，无需安装依赖）：
+环境检测与组件配置属于该子技能的[初始化流程](../hetong-word/references/environment-init.md)：
+基础 Word 操作不要求 LibreOffice；生成、渲染依赖按需配置，安装与只检查分开。
+含历史修订/批注的文件必须先深读，不接受/拒绝历史来简化处理。旧脚本路径保留兼容入口，
+新工作使用 `hetong-word/scripts/` 的唯一实现。
 
-```bash
-T=<技能目录>/scripts/docx_tool.py
-python3 $T extract 合同.docx -o 全文.txt        # 带段落/表格编号提取（P0001/T0001 R01 C01）
-python3 $T search 合同.docx 关键词              # 定位段落；--numbers 抓金额税率期限
-python3 $T replace 合同.docx 旧 新 --para P0012 -o 合同_修订稿.docx  # 普通清洁稿；不生成留痕
-python3 $T batch 合同.docx edits.json --dry-run # 批量修改预演
-python3 $T verify 合同.docx                     # 结构校验
-```
-
-用户要求 Word/WPS 留痕修改、红线稿或批注时，加载 [红线与批注流程](references/docx-redline.md)，
-使用独立的 `scripts/hetong_redline.py`；不要用普通 replace/set 冒充修订，也不要自动接受已有修订。
-
-**已有大量修订/批注的 DOCX，先做 Word 深读。** 在审核、修订或对比之前运行
-`scripts/word_reader.py`，生成原文、接受视图、标记视图、时间线、批注线程和条款变化链：
-
-```bash
-W=<技能目录>/scripts/word_reader.py
-python3 $W analyze 合同.docx --out 产出/word-deep-read
-```
-
-必须同时阅读 `original.md`、`accepted.md`、`markup.md`、`deep-read.md` 和 `timeline.csv`，
-不能只看某一轮显示文本。时间线中的作者活动时段是推断，不得写成谈判轮次；批注说“已修改”
-不等于正文已修复；无锚点、锚点被删除和日期异常必须披露。深读只读，不自动接受/拒绝修订。
-复杂结构、历史修订重叠或清洁版派生，按 [工具边界与替代路径](references/word-operation-paths.md) 处理，不假定通用引擎全部支持。
-完整方法见 [Word 合同精细阅读](references/word-deep-read.md)，报告骨架见
-[Word 深读模板](assets/word-deep-read-report-template.md)。
-
-普通 docx 读写纪律、新合同生成路径（Markdown → HTML → `textutil`（macOS）或
-LibreOffice/模板转换（Windows））、编辑操作全集（set/insert-after/delete/add-row）与
-失败回退，见 [docx-workflow](references/docx-workflow.md)。
-
-Office 精修、PPTX 计划、无头批量渲染、缓存与视觉验收使用
-`scripts/office_kit.py`（自动切换隔离 Python 环境，不依赖 DSH/WPS GUI）：
-
-Windows首次运行、升级依赖或排障时按[Win11安装与检查](references/windows-setup.md)使用`scripts/setup_windows.ps1`；明确区分技能安装、Python依赖、LibreOffice、系统字体和Word/WPS客户端验收。宿主未提供LibreOffice时不假定它已内置；不刷新已有线程。
-
-```bash
-O=<技能目录>/scripts/office_kit.py
-python3 $O doctor --full                          # 环境、字体和中文文本层自检
-python3 $O inspect 合同.docx 汇报.pptx            # 结构盘点、SHA 与 shape_id
-python3 $O pptx apply 计划.json --dry-run         # 预演，不写目标
-python3 $O pptx apply 计划.json --commit --result 执行记录.json
-python3 $O pptx verify 计划.json 产出/修订稿.pptx
-python3 $O render 产出/*.docx 产出/*.pptx --out 产出/_预览 --dpi 120
-```
-
-多个文件必须合并到一次 `render`，同一文件多处修改合并到一份计划；未变的输入/设置
-直接命中缓存。完整编排、PPTX 操作语义、效率与安全边界见
-[Office 精修与无头预览](references/office-workflow.md)；计划模板见
-[PPTX 计划](assets/pptx-edit-plan-template.json)。不得用普通 XML 改写冒充 PowerPoint
-修订痕迹；本工具不生成 PPTX 修订标记或批注。
+PPTX 精修仍按 [Office 工作流](../hetong-word/references/office-workflow.md)使用共用运行时；
+仅此类跨格式工作需要完整 Office profile，不使普通合同审核依赖全部组件。
 
 ## 深度参考（按需加载）
 
 - [审查总清单](references/checklist-review.md)：条款维度 + 风险维度 +
   多合同结构专节（分层总分包、三流一致、术语隔离、税率匹配、背靠背传导）
 - [中文合同语言与体例](references/style-zh-hetong.md)：润色模式的判定基准
-- [Office 精修与无头预览](references/office-workflow.md)：DOCX/PPTX/XLSX/PDF
+- [Office 精修与无头预览](../hetong-word/references/office-workflow.md)：DOCX/PPTX/XLSX/PDF
   的精确修改、渲染、缓存、效率与视觉验收
-- [Word 合同精细阅读](references/word-deep-read.md)：修订/批注、时间线、批注线程、
+- [Word 合同精细阅读](../hetong-word/references/word-deep-read.md)：修订/批注、时间线、批注线程、
   条款业务变化链和证据分层
 - [甲乙方条款库](references/trade-clause-guide.md)：甲方类别多选、A01—A25来源与21项条款、乙方B01—B11；按实际交易适用
-- [未留痕改动检查](references/hidden-change-review.md)：两份近似DOCX的额外只读核对
+- [未留痕改动检查](../hetong-word/references/hidden-change-review.md)：两份近似DOCX的额外只读核对
 - [风险模式库](references/risk-patterns.md)：常见交易结构风险与合同对策
 - 模板资产：[统一审查报告](../hetong-review/assets/review-report-template.md) ·
   [变更日志](assets/change-log-template.md) · [起草受理单](assets/draft-intake-template.md) ·
-  [Word 深读报告](assets/word-deep-read-report-template.md)
+  [Word 深读报告](../hetong-word/assets/word-deep-read-report-template.md)

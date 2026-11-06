@@ -66,7 +66,7 @@ python3 "$KIT" readonly-check baseline.json 原件/合同.docx 原件/附件.doc
 ```
 
 传入清单必须与 baseline 相同； changed、missing、added、omitted 或读取错误均返回非零。即使未显式列出文件，输出也不得覆盖 manifest 本身或其中登记的任一原件。
-审核阶段只用 `hetong-craft/scripts/docx_tool.py` 的 `extract` / `search` / `verify`，不得使用任何写入子命令。
+审核阶段只用 `hetong-word/scripts/docx_tool.py` 的 `extract` / `search` / `verify`，不得使用任何写入子命令。
 
 ## 5. 交付物结构门禁
 

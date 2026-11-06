@@ -23,3 +23,5 @@ rsync -a "$ROOT/.agents/skills/" "$TARGET/.agents/skills/"
 printf '已安装到 %s/.agents/skills/\n' "$TARGET"
 printf '请从目标项目根目录新开会话使用新版；本安装器不会刷新已有会话。\n'
 printf '旧 hetong-server 已撤并；如目标中仍有旧入口，请先自行备份处理，安装器不会删除它。\n'
+printf '四个技能已复制；首次使用请运行 hetong-word/scripts/init.py --profile core 检测环境。\n'
+printf '未安装Python依赖或LibreOffice；生成和预览组件请按需选装。\n'

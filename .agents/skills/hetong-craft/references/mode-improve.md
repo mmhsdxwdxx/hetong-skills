@@ -46,8 +46,8 @@
 
 ### 3. 经批准后实施
 
-- 用户要求红线/批注时走 [docx-redline](docx-redline.md)，仅另存副本；段落内补强可用受限红线引擎。
-  新增整段、表格行等引擎不支持的操作按 [工具边界与替代路径](word-operation-paths.md) 处理，不以无痕插入冒充留痕。
+- 用户要求红线/批注时走 [docx-redline](../../hetong-word/references/docx-redline.md)，仅另存副本；段落内补强可用受限红线引擎。
+  新增整段、表格行等引擎不支持的操作按 [工具边界与替代路径](../../hetong-word/references/word-operation-paths.md) 处理，不以无痕插入冒充留痕。
 - 对已授权的普通清洁稿，落入方式：新增条款用 `insert-after` 克隆同段格式；新增章节注意条号
   顺延与交叉引用更新；表格补内容用 `add-row`/`set`；
 - 族内联动的补强（如对客合同补了 SLA，上游要背靠背接住）必须同步落笔，

@@ -66,9 +66,9 @@
 ### 5. 交付
 
 - 默认先交 **Markdown 评审稿**（便于逐条讨论），附待确认事项清单；
-- 用户确认后如需 docx：按 [docx-workflow](docx-workflow.md) 的
+- 用户确认后如需 docx：按 [docx-workflow](../../hetong-word/references/docx-workflow.md) 的
   "新文档生成"路径转换；若同族有版式基准文件，以其体例为准；
-- 任何 DOCX/PPTX 交付前按 [Office 精修与无头预览](office-workflow.md) 做批量渲染
+- 任何 DOCX/PPTX 交付前按 [Office 精修与无头预览](../../hetong-word/references/office-workflow.md) 做批量渲染
   和视觉验收；PPTX 现有精修工具面向既有稿，不负责从零设计新演示文稿，需新建演示时
   先使用演示模板/专用工具生成，再进入精修与验收；
 - 交付说明：结构取舍理由、待确认事项、建议的下一步（谁审、审什么）。

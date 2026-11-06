@@ -18,13 +18,17 @@ metadata:
 目标不是凑出尽可能多的“问题”，而是在不改变已确认交易实质的前提下，回答：
 **合同是否可签、核心风险在哪里、依据是什么、如何形成可履行/可举证/可退出/可救济的保护机制。**
 
-需要打开、查看或在客户端验收Word文档时，默认使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。执行craft的[默认打开程序与原生审阅显示](../hetong-craft/references/native-review-display.md)。
+需要读取、深读、生成、批注、修订或验证 Word 时，加载 [hetong-word](../hetong-word/SKILL.md)，
+并说明“本次使用 `hetong-word` 处理 Word 文件”。环境检测和按需安装按其初始化流程执行；
+调用子技能不自动委派子代理，不改变本技能的内容判断和授权范围。
+
+需要打开、查看或在客户端验收Word文档时，默认使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。执行hetong-word的[默认打开程序与原生审阅显示](../hetong-word/references/native-review-display.md)。
 
 新增Word批注先执行[批注触发标准](../hetong-craft/references/comment-policy.md)：固定条款仅作核对依据，已充分满足且无需改动的不新增批注；真实缺陷、需增删修订及错别字按本次授权处理。
 
 我方向下游供货时，执行craft的[下游保函责任原则](../hetong-craft/references/downstream-guarantee-policy.md)：用保函金额覆盖罚则、依实函兑付、不另退预付款，不沿用历史比例罚则或保函外现金赔付。历史条款和通用保护手册不覆盖该专项规则；法律效力、实际承保和预付款结算仍须核验。新旧线程后续加载均适用，不批量发送刷新消息，不自动改动既有成果。
 
-**Word审阅隐私铁律**：直接调用或仅借鉴hetong做法均须执行[共用规则](../hetong-craft/references/review-privacy.md)。Word批注、回复、修订文字及理由不得转介另一份文件或透露内部报告名称、路径、链接和索引；意见就地完整，追溯关系仅留在内部记录。
+**Word审阅隐私铁律**：直接调用或仅借鉴hetong做法均须执行[共用规则](../hetong-word/references/review-privacy.md)。Word批注、回复、修订文字及理由不得转介另一份文件或透露内部报告名称、路径、链接和索引；意见就地完整，追溯关系仅留在内部记录。
 
 ## 专用快速审核路由
 
@@ -72,16 +76,16 @@ metadata:
 | 审核转实际修订 | [交接单模板](assets/handoff-template.md) |
 | 条款语言与术语统一 | `../hetong-craft/references/style-zh-hetong.md` |
 | 指纹、数字、引文和结构门禁 | [review_kit 使用说明](scripts/README.md)＋`scripts/review_kit.py` |
-| docx 提取或后续写入 | `../hetong-craft/references/docx-workflow.md` 及 `../hetong-craft/scripts/docx_tool.py` |
-| Word/WPS 红线稿、留痕或范围批注 | `../hetong-craft/references/docx-redline.md`；经授权另存，用 `hetong_redline.py`，不自动接受历史修订 |
-| 内容已确定且获准写入的 Word 操作 | [Word 操作委派](../hetong-craft/references/word-operation-agent.md)；默认继承主模型，内容判断和最终验收仍由主 Agent 负责；原生配色按[显示规则](../hetong-craft/references/native-review-display.md)执行 |
-| DOCX/PPTX/XLSX/PDF 结构检查、PPTX 精修与无头预览 | `../hetong-craft/references/office-workflow.md` 及 `../hetong-craft/scripts/office_kit.py`；只读检查不授予正文修改权 |
-| 含修订/批注 DOCX 的原文、接受视图、时间线和批注线程 | `../hetong-craft/references/word-deep-read.md` 及 `../hetong-craft/scripts/word_reader.py`；只读深读，不自动接受/拒绝修订 |
+| docx 提取或后续写入 | `../hetong-word/references/docx-workflow.md` 及 `../hetong-word/scripts/docx_tool.py` |
+| Word/WPS 红线稿、留痕或范围批注 | `../hetong-word/references/docx-redline.md`；经授权另存，用 `hetong_redline.py`，不自动接受历史修订 |
+| 内容已确定且获准写入的 Word 操作 | 先加载 [hetong-word](../hetong-word/SKILL.md)；确有分工需要时再按 [Word 操作委派](../hetong-craft/references/word-operation-agent.md)；默认继承主模型，内容判断和最终验收仍由主 Agent 负责；原生配色按[显示规则](../hetong-word/references/native-review-display.md)执行 |
+| DOCX/PPTX/XLSX/PDF 结构检查、PPTX 精修与无头预览 | `../hetong-word/references/office-workflow.md` 及 `../hetong-word/scripts/office_kit.py`；只读检查不授予正文修改权 |
+| 含修订/批注 DOCX 的原文、接受视图、时间线和批注线程 | `../hetong-word/references/word-deep-read.md` 及 `../hetong-word/scripts/word_reader.py`；只读深读，不自动接受/拒绝修订 |
 | 甲乙方买卖条款、类别选择及交付/担保衔接 | `../hetong-craft/references/trade-clause-guide.md`；条款以craft为准，按实际角色、标的及本次范围使用 |
-| 两份近似DOCX的未留痕改动检查 | `../hetong-craft/references/hidden-change-review.md`和`../hetong-craft/scripts/hidden_change.py`；仍需区分差异与主观恶意 |
-| Word 成品审阅结构审计（修订/批注历史保留、锚点、包结构） | `../hetong-craft/scripts/audit_docx_review.py`；只读，需 `--before` 才有新增内容基线 |
+| 两份近似DOCX的未留痕改动检查 | `../hetong-word/references/hidden-change-review.md`和`../hetong-word/scripts/hidden_change.py`；仍需区分差异与主观恶意 |
+| Word 成品审阅结构审计（修订/批注历史保留、锚点、包结构） | `../hetong-word/scripts/audit_docx_review.py`；只读，需 `--before` 才有新增内容基线 |
 
-以本技能目录为基准把相对路径解析成绝对路径。引用 `hetong-craft` 的清单和工具是单一
+以本技能目录为基准把相对路径解析成绝对路径。合同清单引用 `hetong-craft`，Word 工具引用 `hetong-word` 的单一
 真源，不复制其正文；若依赖不可用，披露降级方式，不降低全文覆盖、只读或验证要求。
 
 ## 三、阶段 A：审核与诊断
@@ -110,7 +114,7 @@ metadata:
    `docx_tool.py` 只用 `extract` / `search` / `verify`，不使用任何写入子命令。
    经授权的批注副本单独走红线与批注流程，不能以批注授权修改正文或覆盖原件。
 4. 若 docx 含修订、批注或回复，先运行
-   `../hetong-craft/scripts/word_reader.py analyze 合同.docx --out 产出/word-deep-read`，
+   `../hetong-word/scripts/word_reader.py analyze 合同.docx --out 产出/word-deep-read`，
    同时读原文、接受视图、标记视图、时间线、批注线程和条款变化链；建立 `WR/TV/C`
    与条款定位的映射。不得只看某一显示版本，也不得在 Word 中先接受/拒绝全部修订来简化阅读。
    作者活动时段是推断，不是谈判轮次；批注状态未知与未解决必须分开。

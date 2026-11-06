@@ -11,7 +11,7 @@
 渲染及必要的 WPS/Word 操作。操作所需的机械提取可随工作包委派；内容未定阶段的阅读解释、
 审核和方案取舍不属于此委派。PPTX、XLSX 不自动套用本规则。
 
-主代理交接与子代理执行都须遵守[Word审阅隐私铁律](review-privacy.md)：内部报告、路径、链接、索引不得进入Word批注、回复或修订文字；仅借鉴hetong做法也适用。
+主代理交接与子代理执行都须遵守[Word审阅隐私铁律](../../hetong-word/references/review-privacy.md)：内部报告、路径、链接、索引不得进入Word批注、回复或修订文字；仅借鉴hetong做法也适用。
 
 子代理不得润色已定文字、补齐未确认条件、扩大范围或自行解释冲突。遇到原文不匹配、重复命中、
 不支持的结构或内容矛盾，返回具体位置和缺口，由主 Agent 判断；不得清除历史修订/批注来绕过限制。
@@ -32,15 +32,15 @@
   已定排版要求和应原样保留的占位符。子代理不得自行决定金额、期限、担保或其他商业条件。
 - **执行与验收依据**：所需技能参考、工具路径、预演/验证命令或检查要求，说明哪些目标软件
   操作确有必要；只传任务所需材料，不附整段谈判历史。
-- **原生审阅显示**：按[配色检查](native-review-display.md)传递目标客户端、已见历史颜色、设置作用域及限制；只能在能力范围内调整原生审阅显示，不增改正文或批注的字色、底纹等格式。
+- **原生审阅显示**：按[配色检查](../../hetong-word/references/native-review-display.md)传递目标客户端、已见历史颜色、设置作用域及限制；只能在能力范围内调整原生审阅显示，不增改正文或批注的字色、底纹等格式。
 
 同一文件的预演、写入、自检及渲染交给一个 writer，不为每条修订创建子代理；同一文件及同一
 WPS/Word 界面不得并发写入。子代理不再嵌套委派。输出另存，源件不改。
 
-工具分工沿用 [普通 DOCX 操作](docx-workflow.md)、[红线与批注](docx-redline.md)、
-[Word 深读](word-deep-read.md) 和 [Office 精修与预览](office-workflow.md)：
+工具分工沿用 [普通 DOCX 操作](../../hetong-word/references/docx-workflow.md)、[红线与批注](../../hetong-word/references/docx-redline.md)、
+[Word 深读](../../hetong-word/references/word-deep-read.md) 和 [Office 精修与预览](../../hetong-word/references/office-workflow.md)：
 Python 做精确修改，LibreOffice 批量转换/渲染，默认由WPS完成必要的文档打开与客户端验证；不逐处启动 GUI。
-交接包未指定客户端时按[默认打开程序规则](native-review-display.md)使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。保留已有预演、验证及只读约束，不因委派降低门槛。
+交接包未指定客户端时按[默认打开程序规则](../../hetong-word/references/native-review-display.md)使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。保留已有预演、验证及只读约束，不因委派降低门槛。
 
 ## 回执与主 Agent 验收
 
