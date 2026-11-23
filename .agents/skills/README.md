@@ -2,6 +2,10 @@
 
 `hetong-craft`是统一入口和甲乙方条款的唯一内容真源；`hetong-review`承接深度审核；`hetong-fast-xqy-v1`是按XQY八项框架及甲乙方立场交付宋体Word报告的快审子技能。Word文件操作统一调用`hetong-word`子技能。四者共同位于`.agents/skills/`。独立`hetong-server`已撤并，不再维护或加载其副本。
 
+## 甲方采购适配（2.1.0-dev.1）
+
+三个合同入口共用[采购适配与参考表述](hetong-craft/references/buyer-procurement-guide.md)：区分期货、现货和混合批次，模板只借措辞；M01列明6＋12家银行及官方线上验真，M08补四类GPU压测，预付款与履约保函各自核对。保留最小关键修订和本单商业条件优先；不把某笔交易的署名、无批注、比例或期限固化为默认值。
+
 ## v2.0.2 审阅约束
 
 四个入口共同执行[统一审阅输出规则](hetong-word/references/review-rules.md)：固定条款命中不自动批注；意见通常一两句且不转介文件；双交付使用同一可见R问题编号；明确错误直接最小修订，中英以中文为准并同步；用户或流程要求简要报告时总篇幅最多2页，按实际渲染验页。明确只读/只批注和未确认商业条件仍受保护。
@@ -128,7 +132,9 @@ python3 .agents/skills/hetong-review/scripts/test_review_kit.py
 
 开发和发布规则见[DEVELOPMENT.md](DEVELOPMENT.md)。历史验证不替代当前验证，当前记录见[VALIDATION.md](VALIDATION.md)。
 
-行为场景分别读取`hetong-craft/evals/evals.json`、`hetong-craft/evals/trade-evals.json`、`hetong-craft/evals/intake-evals.json`和`hetong-craft/evals/comment-evals.json`，不能只运行第一份。场景中的`files`均相对各自技能根目录解析；行为评测记录与单元回归结果分开，不能将预期答案当实际通过。
+行为场景分别读取`hetong-craft/evals/evals.json`、`hetong-craft/evals/trade-evals.json`、`hetong-craft/evals/intake-evals.json`、`hetong-craft/evals/comment-evals.json`和`hetong-craft/evals/buyer-procurement-evals.json`，不能只运行第一份。场景中的`files`均相对各自技能根目录解析；行为评测记录与单元回归结果分开，不能将预期答案当实际通过。
+
+甲方采购本轮场景见`hetong-craft/evals/buyer-procurement-evals.json`，覆盖现货、仅预付款担保、双保函、法定不可抗力和最小修订；实际运行范围另记于`VALIDATION.md`。
 
 ## 正文与批注维护
 
