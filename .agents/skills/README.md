@@ -132,7 +132,7 @@ python3 .agents/skills/hetong-review/scripts/test_review_kit.py
 
 开发和发布规则见[DEVELOPMENT.md](DEVELOPMENT.md)。历史验证不替代当前验证，当前记录见[VALIDATION.md](VALIDATION.md)。
 
-行为场景分别读取`hetong-craft/evals/evals.json`、`hetong-craft/evals/trade-evals.json`、`hetong-craft/evals/intake-evals.json`和`hetong-craft/evals/comment-evals.json`，不能只运行第一份。场景中的`files`均相对各自技能根目录解析；行为评测记录与单元回归结果分开，不能将预期答案当实际通过。
+行为场景分别读取`hetong-craft/evals/evals.json`、`hetong-craft/evals/trade-evals.json`、`hetong-craft/evals/intake-evals.json`、`hetong-craft/evals/comment-evals.json`和`hetong-craft/evals/buyer-procurement-evals.json`，不能只运行第一份。场景中的`files`均相对各自技能根目录解析；行为评测记录与单元回归结果分开，不能将预期答案当实际通过。
 
 甲方采购本轮场景见`hetong-craft/evals/buyer-procurement-evals.json`，覆盖现货、仅预付款担保、双保函、法定不可抗力和最小修订；实际运行范围另记于`VALIDATION.md`。
 
