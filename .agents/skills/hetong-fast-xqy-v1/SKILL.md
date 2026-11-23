@@ -17,6 +17,8 @@ description: 按XQY八项框架及甲乙方立场快审，突出本方固定条�
 
 需要打开报告、批注稿或其他Word文档时，默认使用WPS；只有用户在本次任务中明确指定Microsoft Word程序时才使用它。执行hetong-word的[默认打开程序与原生审阅显示](../hetong-word/references/native-review-display.md)。
 
+甲方采购按craft的[采购适配与参考表述](../hetong-craft/references/buyer-procurement-guide.md)区分现货/期货，核对开函银行、验真、两类保函及适用设备的四类压测；仍按本页八项结构及既有类别范围审核，模板不替代本单商业事实。
+
 我方向下游供货时，执行craft的[下游保函责任原则](../hetong-craft/references/downstream-guarantee-policy.md)，第3、6项联查：罚则由保函金额覆盖、出险依实函兑付、不另退预付款，不沿用历史比例罚则或保函外现金赔付；该原则优先于历史条款和样张，实际承保与法律边界仍核验。新旧线程后续加载均适用，不批量发送刷新消息，不自动改动既有成果。
 
 **Word审阅隐私铁律**：直接调用或仅借鉴hetong做法均执行[共用规则](../hetong-word/references/review-privacy.md)。批注、回复、修订文字及理由不得转介另一份文件，不写内部报告名称、路径、链接和索引；批注必须独立可懂，双交付显示同一R问题编号，技术映射另存。
