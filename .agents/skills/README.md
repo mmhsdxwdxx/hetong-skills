@@ -2,6 +2,10 @@
 
 `hetong-craft`是统一入口和甲乙方条款的唯一内容真源；`hetong-review`承接深度审核；`hetong-fast-xqy-v1`是按XQY八项框架及甲乙方立场交付宋体Word报告的快审子技能。Word文件操作统一调用`hetong-word`子技能。四者共同位于`.agents/skills/`。独立`hetong-server`已撤并，不再维护或加载其副本。
 
+## 默认修订颗粒度（2.1.0-dev.2）
+
+四个入口共用[按修改事项分组的修订规则](hetong-word/references/docx-redline.md#三默认修订粒度按修改事项分组)：同一事项内适度合并，不同事项分别处理，保留原句骨架与有意义的未改原文；不硬性限定字数、修订条数、每段组数或变化比例。保持最小修改、最关键修改、最小批注原则。工具统计仅供复核，不因超过数值阈值再次请示；自动 diff 和自动附加批注不符合上述要求时，采用经过验证的适用路径。
+
 ## 甲方采购适配（2.1.0-dev.1）
 
 三个合同入口共用[采购适配与参考表述](hetong-craft/references/buyer-procurement-guide.md)：区分期货、现货和混合批次，模板只借措辞；M01列明6＋12家银行及官方线上验真，M08补四类GPU压测，预付款与履约保函各自核对。保留最小关键修订和本单商业条件优先；不把某笔交易的署名、无批注、比例或期限固化为默认值。
@@ -140,4 +144,4 @@ python3 .agents/skills/hetong-review/scripts/test_review_kit.py
 
 甲乙方条款均在`hetong-craft/references/clauses/`按一类一个Markdown维护；JSON只存索引，旧整合预览和乙方基线文件仅保留入口。正文调整不要求改SKILL.md；改名、增删或移动条款后执行`buyer_clause_select.py --side seller reindex`预览（甲方使用`--side buyer`），核对后加`--write`更新索引，再运行`validate`。完整目录必须随技能一并打包，不能仅分发SKILL.md或JSON索引。
 
-新增批注执行[统一触发标准](hetong-craft/references/comment-policy.md)：已符合固定条款且无需改动不批注；真实问题、必要的增删修订和错字按授权处理。内部覆盖记录与Word批注分开；本轮修复说明和历史批注继续保留。
+新增批注执行[统一触发标准](hetong-craft/references/comment-policy.md)：已符合固定条款且无需改动不批注；真实问题、必要的增删修订和错字按授权处理。内部覆盖记录与Word批注分开；本轮必要说明和历史批注继续保留；修订已清楚表达时不重复批注。

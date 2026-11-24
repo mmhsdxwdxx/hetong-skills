@@ -32,7 +32,7 @@ hetong_redline.py — 受限、可验证的 Word 红线（修订 + 批注）引�
             {"id": "R1", "para": "RL0003",
              "old": "原句（段内唯一精确子串）", "new": "目标句",
              "reason": "改为……的理由（会成为范围批注）",
-             "broad_reason": "仅在大幅改写被警告时必填"},
+             "broad_reason": "可选，内部记录必要的大改原因，不代表用户确认"},
             {"id": "C1", "para": "RL0005",
              "old": "批注锚文本（段内唯一精确子串）",
              "comment": "批注内容"}
@@ -1239,7 +1239,8 @@ def granularity_report(old, new, blocks):
         "change_ratio": round(ratio, 4),
         "fragment_count": fragment_count,
         "warnings": warnings,
-        "requires_broad_reason": bool(warnings),
+        # 保留旧字段以兼容读取方；统计只提示人工复核，不构成确认门槛。
+        "requires_broad_reason": False,
     }
 
 
@@ -1320,15 +1321,6 @@ def build_plan(ctx, edits, created_at=None):
             for s, e, target in blocks
         ]
         gran = granularity_report(text, target_text, blocks)
-        if gran["requires_broad_reason"] and not edit.get("broad_reason"):
-            raise InputError(
-                "段落 %s 属大幅改写（%s），op %s 必须提供非空 broad_reason 以记录用户确认"
-                % (
-                    edit["para"],
-                    "；".join(gran["warnings"]),
-                    edit["id"],
-                )
-            )
         op = {
             "id": edit["id"],
             "para": edit["para"],
@@ -3501,7 +3493,7 @@ edits.json 格式（数组，每一项二选一）：
     {"id":"R1","para":"RL0003","old":"段内唯一精确子串",
      "new":"目标文本（改写/包含 old；new 为空表示删除该片段；不得等于 old）",
      "reason":"替换理由（成为范围批注）",
-     "broad_reason":"大幅改写理由（仅当 plan 给出粒度警告时必填）"}
+     "broad_reason":"可选，内部记录必要的大改原因，不代表用户确认"}
   仅批注：
     {"id":"C1","para":"RL0005","old":"段内唯一精确锚文本",
      "comment":"批注内容"}
@@ -3511,7 +3503,8 @@ edits.json 格式（数组，每一项二选一）：
   - old 为空、跨段、段内命中 0 次或多次都拒绝。
   - 一个 op 只产生一条批注；替换 op 必定给 reason，仅批注 op 不产生修订。
   - old==new 属于空修改；new 为空表示删除 old，属于实质删除而非空修改。
-  - 大幅改写（>60 字，或长段 >60% 改动，或 >6 块变化）需 broad_reason。
+  - 粒度统计仅供人工复核，超过提示值不拒绝计划，不要求额外确认。
+  - 自动 diff 只是候选，须按修改事项检查边界；broad_reason 可选。
 
 退出码：0 成功；1 参数/编辑/计划错误；2 文件/包结构错误；3 验证失败。
 """

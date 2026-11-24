@@ -535,7 +535,7 @@ class TestPlanRejections(Base):
         self.assertEqual(code, 1, payload)
         self.assertFalse(os.path.exists(plan_path))
 
-    def test_large_change_requires_broad_reason(self):
+    def test_large_change_is_diagnostic_not_approval_gate(self):
         old_text = "甲" * 70
         new_text = "乙" * 70
         docx = self.write("large.docx", p(r(old_text)))
@@ -544,21 +544,44 @@ class TestPlanRejections(Base):
             [{"id": "R1", "para": "RL0001", "old": old_text,
               "new": new_text, "reason": "重写"}],
         )
-        self.assertEqual(code, 1, payload)
-        self.assertIn("broad_reason", payload["error"])
-        self.assertFalse(os.path.exists(plan_path))
+        self.assertEqual(code, 0, payload)
+        gran = payload["ops"][0]["granularity"]
+        self.assertTrue(gran["warnings"])
+        self.assertFalse(gran["requires_broad_reason"])
+        self.assertTrue(os.path.exists(plan_path))
+        code, applied = self.apply(docx, out="large-out.docx")
+        self.assertEqual(code, 0, applied)
+        code, verified = self.verify(docx, result="large-out.docx")
+        self.assertEqual(code, 0, verified)
 
         code, payload, plan_path = self.plan(
             docx,
             [{"id": "R1", "para": "RL0001", "old": old_text,
               "new": new_text, "reason": "重写",
-              "broad_reason": "经用户确认整段重写"}],
+              "broad_reason": "此处整体替换为完整的新机制"}],
             out="plan2.json",
         )
         self.assertEqual(code, 0, payload)
-        self.assertTrue(
+        self.assertFalse(
             payload["ops"][0]["granularity"]["requires_broad_reason"]
         )
+        self.assertEqual(payload["ops"][0]["broad_reason"],
+                         "此处整体替换为完整的新机制")
+
+    def test_fragment_count_does_not_require_approval(self):
+        old = "".join(f"第{i}项原有约定继续履行。" for i in range(8))
+        new = old.replace("原有", "调整后")
+        docx = self.write("fragments.docx", p(r(old)))
+        code, payload, _ = self.plan(
+            docx,
+            [{"id": "R1", "para": "RL0001", "old": old,
+              "new": new, "reason": "按确认内容同步调整"}],
+        )
+        self.assertEqual(code, 0, payload)
+        gran = payload["ops"][0]["granularity"]
+        self.assertGreater(gran["fragment_count"], 6)
+        self.assertTrue(gran["warnings"])
+        self.assertFalse(gran["requires_broad_reason"])
 
     def test_empty_new_is_deletion_not_noop(self):
         docx = self.write("delete.docx", p(r("甲方应支付违约金。")))
