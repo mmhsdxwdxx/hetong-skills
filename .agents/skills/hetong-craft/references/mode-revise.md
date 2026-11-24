@@ -1,7 +1,6 @@
 # 模式：修订（Revise）
 
-按明确指令修改既有合同。核心原则：**只改该改的，其余一字不动；每处改动
-可追溯；改动引起的连锁反应全部处理。**
+按明确指令修改既有合同。核心原则：**最小修改、最关键修改、最小批注；保留可用原文，每项改动可追溯，必要联动全部处理。** 默认按[修改事项分组](../../hetong-word/references/docx-redline.md#三默认修订粒度按修改事项分组)组织留痕，不以最少删改字符或固定修订条数为目标。
 
 ## 流程
 
@@ -38,7 +37,7 @@
 ### 3. 实施
 
 红线/留痕/批注使用 [docx-redline](../../hetong-word/references/docx-redline.md) 的 inspect → plan（dry-run）→ apply → verify，
-不把普通 replace/set 生成的清洁文本当作红线。批注就地说明改动理由，双交付显示同一R问题编号，C-ID等技术映射另存，复杂目标按 [工具边界与替代路径](../../hetong-word/references/word-operation-paths.md) 分流，不强行调用不支持的引擎。
+不把普通 replace/set 生成的清洁文本当作红线。确需说明的批注就地写清问题及处理，修订本身已清楚表达的内容不重复批注；双交付显示同一R问题编号，C-ID等技术映射另存。复杂目标或自动分组不合适时按 [工具边界与替代路径](../../hetong-word/references/word-operation-paths.md) 分流，不强行调用不支持的引擎。
 
 已确认的普通清洁稿使用 `docx_tool.py`（见 [docx-workflow](../../hetong-word/references/docx-workflow.md)）：
 
