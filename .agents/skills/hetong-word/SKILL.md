@@ -48,7 +48,7 @@ python3 <本技能>/scripts/init.py --profile core
 | 批注选区与文字质量 | [批注工作流](references/comment-workflow.md) |
 | 历史重叠、复杂结构、清洁稿派生 | [工具边界与替代路径](references/word-operation-paths.md) |
 | 两版未留痕改动 | [未留痕检查](references/hidden-change-review.md)，`scripts/hidden_change.py` |
-| 成品历史、锚点与包结构核对 | `scripts/audit_docx_review.py`；用 `--before` 指定基线 |
+| 成品历史、锚点、包结构及本轮留痕统计 | `scripts/audit_docx_review.py`；用 `--before` 指定基线，统计口径见[红线交付](references/docx-redline.md#六验证与交付) |
 | 简要报告两页检查 | `scripts/verify_brief_report.py --source 报告.docx --manifest 渲染清单.json`，核对实际PDF页数及指纹 |
 | 可选预览及共用 Office 工具 | [预览与 Office 工作流](references/office-workflow.md)，`scripts/office_kit.py` |
 

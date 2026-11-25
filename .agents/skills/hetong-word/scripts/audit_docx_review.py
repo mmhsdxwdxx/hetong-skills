@@ -31,6 +31,9 @@ REV = {'ins', 'del', 'moveFrom', 'moveTo', 'rPrChange', 'pPrChange',
        'tblGridChange', 'numberingChange', 'cellIns', 'cellDel', 'cellMerge'}
 STORY = re.compile(r'word/(document|header\d*|footer\d*|footnotes|endnotes)\.xml$')
 MARKERS = {Q(n) for n in ('commentRangeStart', 'commentRangeEnd', 'commentReference')}
+TEXT_REVISIONS = {Q(n) for n in ('ins', 'del', 'moveFrom', 'moveTo')}
+TEXT_NODES = {Q('t'), Q('delText')}
+HIDDEN_NODES = {Q('del'), Q('moveFrom')}
 MAX_ENTRIES = 50_000
 MAX_UNCOMPRESSED = 512 * 1024 * 1024
 
@@ -189,11 +192,167 @@ def inventory(roots):
     return ranges, references, events, revisions, paragraphs, errors
 
 
+def _non_whitespace_chars(text):
+    """Count Unicode code points that are not whitespace."""
+    return sum(1 for char in text if not char.isspace())
+
+
+def _story_parts(roots):
+    return {part for part in roots if STORY.fullmatch(part)}
+
+
+def _visible_text_chars(roots):
+    """Count visible text in stories, excluding deletion/move-from content."""
+    total = 0
+
+    def walk(node, hidden=False):
+        nonlocal total
+        hidden = hidden or node.tag in HIDDEN_NODES
+        if not hidden and node.tag in TEXT_NODES:
+            total += _non_whitespace_chars(node.text or '')
+        for child in node:
+            walk(child, hidden)
+
+    for part, root in roots.items():
+        if STORY.fullmatch(part):
+            walk(root)
+    return total
+
+
+def _revision_text_counts(roots, old_revision_keys):
+    """Count text once, assigning each leaf to its applicable revision owner."""
+    counts = Counter()
+
+    def walk(node, part, nearest=None, nearest_move=None):
+        if node.tag in TEXT_REVISIONS:
+            nearest = node
+        if node.tag in {Q('moveFrom'), Q('moveTo')}:
+            nearest_move = node
+        if node.tag in TEXT_NODES and nearest is not None:
+            owner = nearest_move if nearest_move is not None else nearest
+            kind = owner.tag.rsplit('}', 1)[-1]
+            revision_key = (part, owner.get(Q('id')))
+            if kind in {'ins', 'del', 'moveFrom', 'moveTo'} and revision_key not in old_revision_keys:
+                counts[kind] += _non_whitespace_chars(node.text or '')
+        for child in node:
+            walk(child, part, nearest, nearest_move)
+
+    for part, root in roots.items():
+        if STORY.fullmatch(part):
+            walk(root, part)
+    return counts
+
+
+def _structural_revision_reasons(roots):
+    """Find row/cell insert-delete markers whose text is outside the marker."""
+    reasons = set()
+
+    def walk(node, ancestors=()):
+        kind = node.tag.rsplit('}', 1)[-1] if node.tag.startswith('{') else node.tag
+        if kind in {'ins', 'del'} and ancestors and ancestors[-1] == Q('trPr'):
+            reasons.add('row_insert_delete_structure_not_expandable')
+        if kind in {'cellIns', 'cellDel'} and Q('tcPr') in ancestors:
+            reasons.add('cell_insert_delete_structure_not_expandable')
+        next_ancestors = ancestors + (node.tag,)
+        for child in node:
+            walk(child, next_ancestors)
+
+    for part, root in roots.items():
+        if STORY.fullmatch(part):
+            walk(root)
+    return sorted(reasons)
+
+
+def _redline_stats(roots, old_roots=None, revisions=None, old_revisions=None,
+                   package_diff=None):
+    """Return conservative, read-only text redline statistics."""
+    scope = {
+        'stories': 'word/document.xml, word/header*.xml, word/footer*.xml, '
+                   'word/footnotes.xml, word/endnotes.xml',
+        'includes': ['正文（含表格）', '页眉', '页脚', '脚注', '尾注'],
+        'excludes': ['批注', '格式修订'],
+    }
+    counting = {
+        'unit': 'Unicode code point',
+        'rule': '仅统计本轮新增 ins/del/moveFrom/moveTo 文本中的非空白字符；标点、数字、字母各计1',
+        'nested_revisions': '移动修订优先；其他文本归最近文本修订，不重复计算嵌套修订或表格标记',
+    }
+    empty_values = {
+        'inserted': {'chars': None, 'ratio': None},
+        'deleted': {'chars': None, 'ratio': None},
+        'move_from': {'chars': None},
+        'move_to': {'chars': None},
+    }
+    result = {
+        'scope': scope,
+        'counting': counting,
+        'baseline_view': {
+            'visible_text_chars': None,
+            'definition': '基线可见文本：正常文本、历史插入和 moveTo；排除历史删除和 moveFrom',
+        },
+        'status': 'no_baseline' if old_roots is None else 'ok',
+        **empty_values,
+    }
+    if old_roots is None:
+        return result
+
+    revisions = revisions or []
+    old_revisions = old_revisions or []
+    old_revision_keys = {(r['part'], r['id']) for r in old_revisions}
+    unreliable = []
+    unreliable.extend(_structural_revision_reasons(roots))
+    unreliable.extend(_structural_revision_reasons(old_roots))
+
+    old_story_parts = _story_parts(old_roots)
+    story_parts = _story_parts(roots)
+    if old_story_parts != story_parts:
+        unreliable.append('story_parts_changed')
+    if package_diff and any(name in package_diff['removed'] for name in old_story_parts):
+        unreliable.append('story_part_removed')
+
+    old_counts = Counter((r['part'], r['id']) for r in old_revisions)
+    current_counts = Counter((r['part'], r['id']) for r in revisions)
+    if any(count > 1 for count in old_counts.values()) or any(count > 1 for count in current_counts.values()):
+        unreliable.append('duplicate_revision_id')
+    if any(r['id'] is None or not r['id'].isdigit() for r in old_revisions + revisions):
+        unreliable.append('invalid_revision_id')
+
+    old_signatures = Counter((r['part'], r['id'], r['kind'], r['signature'])
+                             for r in old_revisions)
+    current_signatures = Counter((r['part'], r['id'], r['kind'], r['signature'])
+                                 for r in revisions)
+    for key, count in old_signatures.items():
+        if current_signatures[key] < count:
+            unreliable.append('historical_revision_changed_or_lost')
+            break
+
+    if unreliable:
+        result['status'] = 'unreliable'
+        result['reasons'] = sorted(set(unreliable))
+        return result
+
+    baseline_chars = _visible_text_chars(old_roots)
+    result['baseline_view']['visible_text_chars'] = baseline_chars
+    counts = _revision_text_counts(roots, old_revision_keys)
+    result['inserted']['chars'] = counts['ins']
+    result['deleted']['chars'] = counts['del']
+    result['move_from']['chars'] = counts['moveFrom']
+    result['move_to']['chars'] = counts['moveTo']
+    if baseline_chars:
+        result['inserted']['ratio'] = counts['ins'] / baseline_chars
+        result['deleted']['ratio'] = counts['del'] / baseline_chars
+    else:
+        result['status'] = 'baseline_empty'
+        result['inserted']['ratio'] = None
+        result['deleted']['ratio'] = None
+    return result
+
+
 def audit(final, before=None, author=None, comments_only=False):
     data, roots, comments, duplicates = read_package(final)
     ranges, refs, events, revisions, paragraphs, errors = inventory(roots)
     warnings = []
-    old_comments, old_revisions = {}, []
+    old_comments, old_revisions, old_roots = {}, [], None
     package_diff = None
     if before:
         old_data, old_roots, old_comments, _ = read_package(before)
@@ -280,6 +439,7 @@ def audit(final, before=None, author=None, comments_only=False):
     for key, count in counts.items():
         if count > max(1, old_counts[key]):
             errors.append(f'修订 ID 重复：{key[0]}:{key[1]}')
+    redline_stats = _redline_stats(roots, old_roots, revisions, old_revisions, package_diff)
     new_revisions = []
     for r in revisions:
         is_new = (r['part'], r['id']) not in old_keys
@@ -322,7 +482,8 @@ def audit(final, before=None, author=None, comments_only=False):
                     'new_comments': len(new_comments) if before else None,
                     'new_revisions': len(new_revisions) if before else None,
                     'short_text_revision_candidates': sum(len(r['text']) <= 3 for r in text_revisions),
-                    'long_text_revision_candidates': sum(len(r['text']) > 180 for r in text_revisions)},
+                    'long_text_revision_candidates': sum(len(r['text']) > 180 for r in text_revisions),
+                    'redline_stats': redline_stats},
         'errors': errors, 'warnings': warnings, 'package_diff': package_diff,
         'review_privacy': {'findings': privacy, 'has_baseline': bool(before),
                            'new_content_blocked': any(x['scope'] == 'new' for x in privacy)},

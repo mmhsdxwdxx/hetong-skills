@@ -67,6 +67,7 @@ metadata:
 | 所有深度审核 | [深度审核方法](references/review-method.md)；[我方立场与谈判](references/stance-and-negotiation.md)；`../hetong-craft/references/checklist-review.md` |
 | 受理与立场不明 | [审核受理单](assets/review-intake-template.md) |
 | 交易结构、背靠背、责任分配 | `../hetong-craft/references/risk-patterns.md` |
+| 我方支付居间费、中介报酬条款 | [居间专项](../hetong-craft/references/intermediary-review.md)，区分促成签约与交易履行，不默认新付款条件或税差补偿 |
 | 履约时间轴，付款／交付／担保／发票联动 | [合同履约时间轴规范](../hetong-craft/references/contract-timeline.md)；使用固定日期栏＋三栏正文，区分实际记录与情景、应付／已付／待退／占用，不自动增加批注或改文 |
 | 引用法律、判断效力、重大风险或专项监管 | [法律核验与结论分层](references/legal-verification.md) |
 | 出具审核报告 | [审核报告模板](assets/review-report-template.md) |
@@ -153,8 +154,8 @@ metadata:
 
 - 用 `review_kit.py numbers` 或等效方法建立高召回数字台账；`search --numbers` 只能作补充。
   用 `calc-tax` / `sum` 或其他 Decimal 工具独立复算，留存公式、原值、结果、差异和联动位置。
-  含税或多税率合同另建 `items[{id,net,rate,tax?,gross?}]` 台账并运行 `tax-check`；报告必须
-  明确列出**合计不含税金额＋合计税额＝合计含税金额**，不能只算分项或总价差。
+  含税或多税率合同另建 `items[{id,net,rate,tax?,gross?}]` 台账并运行 `tax-check`；数字底稿须
+  明确列出**合计不含税金额＋合计税额＝合计含税金额**，不能只算分项或总价差。用户仅要必要差异或简短修改建议时，按[简要输出规则](../hetong-word/references/review-rules.md#6-简要审核报告最多两页)保留内部核算，不强加详细底稿。
   算术正确不等于税率或交易拆分正确。
 - 期限链区分工作日/自然日、起算日是否计入、法定节假日与调休。跨节假日期限抽取代表性
   日期逐步复算，并记录日历依据，不凭周末直觉。

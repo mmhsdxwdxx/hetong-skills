@@ -118,8 +118,9 @@ PPTX 精修仍按 [Office 工作流](../hetong-word/references/office-workflow.m
 
 ## 深度参考（按需加载）
 
-- [审查总清单](references/checklist-review.md)：条款维度 + 风险维度 +
+- [审查总清单](references/checklist-review.md)：签署日期及文本形式问题先读其中的签署规则，区分日期未定的未签模板与已签真实记录；条款维度 + 风险维度 +
   多合同结构专节（分层总分包、三流一致、术语隔离、税率匹配、背靠背传导）
+- [支出居间费专项](references/intermediary-review.md)：仅在中介实质及我方付费场景加载，核对报酬触发、发票扣缴、税差及廉洁，不套设备条款
 - [中文合同语言与体例](references/style-zh-hetong.md)：润色模式的判定基准
 - [Office 精修与无头预览](../hetong-word/references/office-workflow.md)：DOCX/PPTX/XLSX/PDF
   的精确修改、渲染、缓存、效率与视觉验收
