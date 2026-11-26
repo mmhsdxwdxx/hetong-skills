@@ -31,7 +31,7 @@ metadata:
 
 新增Word批注先执行[批注触发标准](../hetong-craft/references/comment-policy.md)：固定条款仅作核对依据，已充分满足且无需改动的不新增批注；真实缺陷、需增删修订及错别字按本次授权处理。
 
-甲方采购同时按craft的[采购适配与参考表述](../hetong-craft/references/buyer-procurement-guide.md)区分现货/期货，核对开函银行、验真、两类保函及适用设备的压测。参考模板只供表述借鉴，不替代本单事实、类别选择或商业确认。
+甲方采购同时按craft的[采购适配与参考表述](../hetong-craft/references/buyer-procurement-guide.md)区分现货/期货，核对开函银行、验真、两类保函及适用设备的压测。保函模式按[买方罚则规则](../hetong-craft/references/buyer-penalty-policy.md)比较：默认保函额度减预付款，原合同明显更高且有利的卖方罚则保留；不以默认值充当总责任上限。参考模板只供表述借鉴，不替代本单事实、类别选择或商业确认。
 
 我方向下游供货时，执行craft的[下游保函责任原则](../hetong-craft/references/downstream-guarantee-policy.md)：用保函金额覆盖罚则、依实函兑付、不另退预付款，不沿用历史比例罚则或保函外现金赔付。历史条款和通用保护手册不覆盖该专项规则；法律效力、实际承保和预付款结算仍须核验。新旧线程后续加载均适用，不批量发送刷新消息，不自动改动既有成果。
 
