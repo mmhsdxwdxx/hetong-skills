@@ -2,6 +2,10 @@
 
 `hetong-craft`是统一入口和甲乙方条款的唯一内容真源；`hetong-review`承接深度审核；`hetong-fast-xqy-v1`是按XQY八项框架及甲乙方立场交付宋体Word报告的快审子技能。Word文件操作统一调用`hetong-word`子技能。四者共同位于`.agents/skills/`。独立`hetong-server`已撤并，不再维护或加载其副本。
 
+## 采购保函模式罚则（2.1.0-dev.4）
+
+craft、review和XQY共用[买方罚则规则](hetong-craft/references/buyer-penalty-policy.md)：默认罚则金额为保函额度减预付款；原合同对同一违约事项已有明显更高且有利的标准时保留。按实际基数、计日和上限比较，分别核对罚则、退款与银行承保；不以模板或保函覆盖压低原有保护，不套用于下游我方供货。Word技能继续按已定内容落实修订。
+
 ## 采购实务与审核补强（2.1.0-dev.3）
 
 本版补全M08适用GPU测试及验收联动，统一M01/M18官方核验，并在[买方保函实务](hetong-craft/references/buyer-guarantee-practice.md)集中核对模板、单据封顶、索赔补正、减额和已赔付分账。保留M21/B02依法归责的双向无比例基准，补强多行开函、买方补差、到仓前锁货、通知及共管退款。新增[居间审核附录](hetong-craft/references/intermediary-review.md)，不新增技能或条款编号。
@@ -142,7 +146,7 @@ python3 .agents/skills/hetong-review/scripts/test_review_kit.py
 
 开发和发布规则见[DEVELOPMENT.md](DEVELOPMENT.md)。历史验证不替代当前验证，当前记录见[VALIDATION.md](VALIDATION.md)。
 
-行为场景分别读取`hetong-craft/evals/evals.json`、`hetong-craft/evals/trade-evals.json`、`hetong-craft/evals/intake-evals.json`、`hetong-craft/evals/comment-evals.json`和`hetong-craft/evals/buyer-procurement-evals.json`，不能只运行第一份。场景中的`files`均相对各自技能根目录解析；行为评测记录与单元回归结果分开，不能将预期答案当实际通过。
+行为场景分别读取`hetong-craft/evals/evals.json`、`hetong-craft/evals/trade-evals.json`、`hetong-craft/evals/intake-evals.json`、`hetong-craft/evals/comment-evals.json`、`hetong-craft/evals/buyer-procurement-evals.json`和`hetong-craft/evals/buyer-penalty-evals.json`，不能只运行第一份。场景中的`files`均相对各自技能根目录解析；行为评测记录与单元回归结果分开，不能将预期答案当实际通过。
 
 甲方采购本轮场景见`hetong-craft/evals/buyer-procurement-evals.json`，覆盖现货、仅预付款担保、双保函、法定不可抗力和最小修订；实际运行范围另记于`VALIDATION.md`。
 
